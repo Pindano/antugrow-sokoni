@@ -365,44 +365,19 @@ export const uploadProductImage = async (file, fileName) => {
 // Enhanced product listing insertion with user and farm info
 export const insertProductListing = async (productData) => {
   try {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'User not authenticated' }
+
 
     // Get user's primary farm or use provided farm_id
-    let farmData = null
-    if (!productData.farm_id) {
-      const { data: farms } = await getUserFarms(user.id)
-      const primaryFarm = farms?.find(farm => farm.is_primary)
-      if (primaryFarm) {
-        farmData = primaryFarm
-        productData.farm_id = primaryFarm.id
-      }
-    }
+
 
     const { data, error } = await supabase
       .from('product_listings')
       .insert([{
         ...productData,
-        user_id: user.id,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       }])
-      .select(`
-                *,
-                farms (
-                    id,
-                    farm_name,
-                    location,
-                    farm_size,
-                    farm_type
-                ),
-                user_profiles (
-                    full_name,
-                    phone,
-                    email
-                )
-            `)
-      .single()
+
 
     if (error) {
       console.error('Error inserting product:', error)
