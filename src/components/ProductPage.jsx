@@ -1,69 +1,89 @@
-import { useState, useEffect } from "react"
-import { useParams, useNavigate } from "react-router-dom"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Minus, Plus, ShoppingCart, Phone, Mail, MapPin, Loader2, AlertCircle } from "lucide-react"
-import { getProductById } from "../lib/supabase"
-import { Navigation } from "./Navigation"
-
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+    Minus,
+    Plus,
+    ShoppingCart,
+    Phone,
+    Mail,
+    MapPin,
+    Loader2,
+    AlertCircle,
+    Trash,
+} from "lucide-react";
+import { getProductById } from "../lib/supabase";
+import { Navigation } from "./Navigation";
+import { ShieldCheck } from "lucide-react";
+import { Star, Truck } from "lucide-react";
+import { useProductContext } from "../providers/ProductProvider";
 export default function ProductPage() {
-  const { productId } = useParams()
-  const navigate = useNavigate()
-  const [product, setProduct] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [quantity, setQuantity] = useState(1)
-  const [selectedImage, setSelectedImage] = useState(0)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [orderForm, setOrderForm] = useState({
-    fullName: "",
-    phone: "",
-    notes: "",
-  })
+    const { cartItems, addProductToCart, removeProductFromCart, MIN_QTY } =
+        useProductContext();
+    const { productId } = useParams();
+    const navigate = useNavigate();
+    const [product, setProduct] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [quantity, setQuantity] = useState(
+        cartItems?.find((item) => item?.product?.id === productId)?.quantity ||
+            MIN_QTY
+    );
+    const [selectedImage, setSelectedImage] = useState(0);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [orderForm, setOrderForm] = useState({
+        fullName: "",
+        phone: "",
+        notes: "",
+    });
+    useEffect(() => {
+        fetchProduct();
+    }, [productId]);
 
-  useEffect(() => {
-    fetchProduct()
-  }, [productId])
+    const fetchProduct = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const data = await getProductById(productId);
+            if (!data) {
+                navigate("/404", { replace: true });
+                return;
+            }
 
-  const fetchProduct = async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const data = await getProductById(productId)
-      if (!data) {
-        navigate("/404", { replace: true })
-        return
-      }
-      setProduct(data)
-    } catch (err) {
-      console.error('Error loading product:', err)
-      setError('Failed to load product. Please try again.')
-    } finally {
-      setLoading(false)
-    }
-  }
+            setProduct(data);
+        } catch (err) {
+            console.error("Error loading product:", err);
+            setError("Failed to load product. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
 
-  const handleQuantityChange = (newQuantity) => {
-    if (newQuantity >= 1 && newQuantity <= (product?.quantity || 1)) {
-      setQuantity(newQuantity)
-    }
-  }
+    const handleQuantityChange = (newQuantity) => {
+        if (
+            newQuantity >= MIN_QTY &&
+            newQuantity <= (product?.quantity || MIN_QTY)
+        ) {
+            setQuantity(newQuantity);
+        }
+    };
 
-  const handleFormChange = (field, value) => {
-    setOrderForm((prev) => ({ ...prev, [field]: value }))
-  }
+    const handleFormChange = (field, value) => {
+        setOrderForm((prev) => ({ ...prev, [field]: value }));
+    };
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
+    const handleSubmit = (e) => {
+        e.preventDefault();
 
-    const total = quantity * product.price
-    const message = `New ${product.name} Order:
+        const total = quantity * product.price;
+        const message = `New ${product.name} Order:
 Name: ${orderForm.fullName}
 Phone: ${orderForm.phone}
 Product: ${product.name}
@@ -71,456 +91,646 @@ Quantity: ${quantity} ${product.unit}
 Unit Price: KSh ${product.price}
 Total: KSh ${total.toLocaleString()}
 Delivery Location: ${orderForm.notes}
-Payment: Cash/M-Pesa on delivery`
+Payment: Cash/M-Pesa on delivery`;
 
-    const whatsappUrl = `https://wa.me/254113675687?text=${encodeURIComponent(message)}`
-    window.open(whatsappUrl, "_blank")
-  }
+        const whatsappUrl = `https://wa.me/254113675687?text=${encodeURIComponent(
+            message
+        )}`;
+        window.open(whatsappUrl, "_blank");
+    };
 
-  const scrollToOrder = () => {
-    document.getElementById("order-section")?.scrollIntoView({ behavior: "smooth" })
-  }
+    const scrollToOrder = () => {
+        document
+            .getElementById("order-section")
+            ?.scrollIntoView({ behavior: "smooth" });
+    };
 
-  // Loading state
-  if (loading) {
+    const cartItem = cartItems?.find(
+        (item) => item?.product?.id === product?.id
+    );
+
+    // Loading state
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-green-50 to-orange-50">
+                <Navigation />
+
+                {/* Main Content Skeleton Structure */}
+                <div className="container mx-auto py-10 px-4 sm:px-6 lg:px-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                        {/* Left Column Skeleton (Image and Description) */}
+                        <div className="lg:col-span-7 xl:col-span-8 animate-pulse">
+                            {/* 1. Large Image Placeholder */}
+                            <div className="h-96 w-full rounded-2xl bg-gray-300 mb-8 shadow-md"></div>
+
+                            {/* 2. Farmer Info / Tabs Placeholder */}
+                            <div className="space-y-4">
+                                <div className="h-6 w-1/3 bg-gray-200 rounded"></div>
+                                <div className="h-4 w-full bg-gray-200 rounded"></div>
+                                <div className="h-4 w-11/12 bg-gray-200 rounded"></div>
+                                <div className="h-4 w-10/12 bg-gray-200 rounded"></div>
+                            </div>
+                        </div>
+
+                        {/* Right Column Skeleton (Sticky Order Controls) */}
+                        <div className="lg:col-span-5 xl:col-span-4 sticky top-6 animate-pulse">
+                            <div className="bg-white rounded-2xl shadow-lg border border-stone-100 p-6 space-y-6">
+                                {/* Product Header / Title */}
+                                <div className="space-y-3">
+                                    <div className="h-4 w-1/4 bg-gray-200 rounded"></div>
+                                    <div className="h-8 w-4/5 bg-gray-300 rounded-lg"></div>
+                                    <div className="h-5 w-2/3 bg-gray-200 rounded"></div>
+                                </div>
+
+                                {/* Price */}
+                                <div className="h-10 w-1/2 bg-green-200 rounded-lg"></div>
+
+                                {/* Separator */}
+                                <div className="h-px bg-gray-200"></div>
+
+                                {/* Quantity Selector / Calculations */}
+                                <div className="space-y-4">
+                                    <div className="h-16 bg-gray-100 rounded-xl"></div>
+                                    <div className="h-4 w-full bg-gray-100 rounded"></div>
+                                    <div className="h-4 w-full bg-gray-100 rounded"></div>
+                                    <div className="h-6 w-full bg-gray-200 rounded-lg pt-2 border-t"></div>
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="grid gap-3 pt-4">
+                                    <div className="h-12 w-full bg-green-300 rounded-lg"></div>
+                                    <div className="h-11 w-full bg-gray-100 rounded-lg"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Optional: Keep the spinning loader as a subtle indicator at the bottom */}
+                <div className="flex items-center justify-center p-8">
+                    <Loader2 className="w-6 h-6 animate-spin text-green-600" />
+                </div>
+            </div>
+        );
+    }
+
+    // Error state
+    if (error || !product) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-green-50 to-orange-50">
+                <Navigation />
+                <div className="flex items-center justify-center min-h-[60vh]">
+                    <div className="text-center">
+                        <AlertCircle className="w-12 h-10 text-red-600 mx-auto mb-4" />
+                        <p className="text-red-600 text-lg mb-4">
+                            {error || "Product not found"}
+                        </p>
+                        <Button
+                            onClick={() => navigate("/products")}
+                            className="bg-green-600 hover:bg-green-700"
+                        >
+                            Back to Products
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    const total = quantity * product.price;
+
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-orange-50">
-        <Navigation />
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center">
-            <Loader2 className="w-12 h-12 animate-spin text-green-600 mx-auto mb-4" />
-            <p className="text-gray-600 text-lg">Loading product details...</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
+        <div className="min-h-screen bg-[#FDFCF8] text-slate-800 font-sans">
+            <Navigation showBackButton={true} />
 
-  // Error state
-  if (error || !product) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-orange-50">
-        <Navigation />
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center">
-            <AlertCircle className="w-12 h-12 text-red-600 mx-auto mb-4" />
-            <p className="text-red-600 text-lg mb-4">{error || 'Product not found'}</p>
-            <Button onClick={() => navigate('/products')} className="bg-green-600 hover:bg-green-700">
-              Back to Products
-            </Button>
-          </div>
-        </div>
-      </div>
-    )
-  }
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+                <div className="grid lg:grid-cols-12 gap-8 lg:gap-12">
+                    {/* RIGHT COLUMN: Sticky Sidebar (Spans 4 cols) */}
+                    <div className="order-1 lg:order-2 lg:col-span-5 xl:col-span-4">
+                        <div className="sticky top-6 space-y-6">
+                            {/* Product Header Card */}
+                            <div className="bg-white rounded-2xl shadow-sm border border-stone-100 p-6">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-2">
+                                            {product.inStock ? (
+                                                <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100 border-none px-2 py-0.5 text-[10px] uppercase tracking-wide">
+                                                    In Stock
+                                                </Badge>
+                                            ) : (
+                                                <Badge variant="destructive">
+                                                    Out of Stock
+                                                </Badge>
+                                            )}
+                                            {product.badges?.map(
+                                                (badge, idx) => (
+                                                    <Badge
+                                                        key={idx}
+                                                        variant="secondary"
+                                                        className="bg-orange-50 text-orange-700 hover:bg-orange-100 border-orange-100 px-2 py-0.5 text-[10px] uppercase tracking-wide"
+                                                    >
+                                                        {badge}
+                                                    </Badge>
+                                                )
+                                            )}
+                                        </div>
+                                        <h1 className="text-3xl font-bold text-slate-900 leading-tight">
+                                            {product.name}
+                                        </h1>
+                                        <div className="flex items-center gap-1 mt-2">
+                                            <div className="flex text-yellow-400">
+                                                {[...Array(5)].map((_, i) => (
+                                                    <Star
+                                                        key={i}
+                                                        className="w-4 h-4 fill-current"
+                                                    />
+                                                ))}
+                                            </div>
+                                            <span className="text-sm text-gray-500 ml-1">
+                                                (New Listing)
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
 
-  const total = quantity * product.price
+                                <div className="flex items-baseline gap-2 mb-6">
+                                    <span className="text-4xl font-bold text-green-700">
+                                        KSh {product.price.toLocaleString()}
+                                    </span>
+                                    <span className="text-gray-500 font-medium">
+                                        / {product.unit}
+                                    </span>
+                                </div>
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-orange-50">
-      <Navigation showBackButton={true} />
+                                <Separator className="mb-6" />
 
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="text-center">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">{product.name}</h1>
-            <p className="text-base sm:text-lg text-gray-600 mb-4">{product.short_description}</p>
-            <div className="flex flex-wrap justify-center gap-2 mb-4">
-              {product.badges?.map((badge, index) => (
-                <Badge key={index} variant="secondary" className="bg-green-100 text-green-800">
-                  {badge}
-                </Badge>
-              ))}
-              <Badge className={product.inStock ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
-                {product.inStock ? "In Stock" : "Out of Stock"}
-              </Badge>
-            </div>
-          </div>
-        </div>
-      </header>
+                                {/* Interactive Order Controls */}
+                                <div className="space-y-6">
+                                    {cartItem && (
+                                        <>
+                                            <div className="bg-stone-50 p-4 rounded-xl border border-stone-100">
+                                                <div className="flex justify-between items-center mb-2">
+                                                    <Label className="text-sm font-medium text-gray-700">
+                                                        Quantity needed
+                                                    </Label>
+                                                    <span className="text-xs text-green-600 font-medium">
+                                                        {product.quantity}{" "}
+                                                        {product.unit} available
+                                                    </span>
+                                                </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Product Section */}
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 mb-16">
-          {/* Image Gallery */}
-          <div className="space-y-4">
-            <div className="aspect-square overflow-hidden rounded-2xl bg-white shadow-lg">
-              <img
-                src={product.images?.[selectedImage] || "/placeholder.svg"}
-                alt={product.name}
-                className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-300"
-                onClick={() => setIsModalOpen(true)}
-              />
-            </div>
-            {product.images?.length > 1 && (
-              <div className="grid grid-cols-3 gap-3">
-                {product.images.map((image, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedImage(index)}
-                    className={`aspect-square overflow-hidden rounded-lg border-2 transition-all ${selectedImage === index
-                        ? "border-green-500 ring-2 ring-green-200"
-                        : "border-gray-200 hover:border-gray-300"
-                      }`}
-                  >
-                    <img
-                      src={image || "/placeholder.svg"}
-                      alt={`View ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+                                                <div className="flex items-center gap-3">
+                                                    <Button
+                                                        variant="outline"
+                                                        size="icon"
+                                                        onClick={() =>
+                                                            handleQuantityChange(
+                                                                quantity - 1
+                                                            )
+                                                        }
+                                                        disabled={
+                                                            quantity <= MIN_QTY
+                                                        }
+                                                        className="h-10 w-10 bg-white shadow-sm border-gray-200"
+                                                    >
+                                                        <Minus className="w-4 h-4" />
+                                                    </Button>
 
-          {/* Product Info */}
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">{product.name}</h2>
-              <div className="text-2xl sm:text-3xl font-bold text-green-600 mb-6">
-                KSh {product.price.toLocaleString()}{" "}
-                <span className="text-base sm:text-lg font-normal text-gray-500">per {product.unit}</span>
-              </div>
-            </div>
+                                                    <div className="flex-1 relative">
+                                                        <Input
+                                                            type="number"
+                                                            value={quantity}
+                                                            onChange={(e) =>
+                                                                handleQuantityChange(
+                                                                    Number.parseInt(
+                                                                        e.target
+                                                                            .value
+                                                                    )
+                                                                )
+                                                            }
+                                                            className="w-full text-center h-10 border-gray-200 focus-visible:ring-green-500"
+                                                            min={MIN_QTY}
+                                                            max={
+                                                                product.quantity
+                                                            }
+                                                        />
+                                                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">
+                                                            {product.unit}s
+                                                        </span>
+                                                    </div>
 
-            <Tabs defaultValue="details" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="details">Details</TabsTrigger>
-                <TabsTrigger value="farming">Farm Info</TabsTrigger>
-              </TabsList>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="icon"
+                                                        onClick={() =>
+                                                            handleQuantityChange(
+                                                                quantity + 1
+                                                            )
+                                                        }
+                                                        disabled={
+                                                            quantity >=
+                                                            product.quantity
+                                                        }
+                                                        className="h-10 w-10 bg-white shadow-sm border-gray-200"
+                                                    >
+                                                        <Plus className="w-4 h-4" />
+                                                    </Button>
+                                                </div>
+                                            </div>
 
-              <TabsContent value="details" className="space-y-4">
-                <Card>
-                  <CardContent className="p-4 sm:p-6">
-                    <h3 className="font-semibold text-gray-900 mb-4">Product Description</h3>
-                    <p className="text-gray-700 mb-4">{product.description}</p>
+                                            {/* Calculations */}
+                                            <div className="space-y-2 text-sm">
+                                                <div className="flex justify-between text-gray-500">
+                                                    <span>Subtotal</span>
+                                                    <span>
+                                                        KSh{" "}
+                                                        {total.toLocaleString()}
+                                                    </span>
+                                                </div>
+                                                <div className="flex justify-between text-gray-500">
+                                                    <span>Platform Fee</span>
+                                                    <span>
+                                                        Calculated at checkout
+                                                    </span>
+                                                </div>
+                                                <div className="flex justify-between text-lg font-bold text-slate-900 pt-2 border-t">
+                                                    <span>Est. Total</span>
+                                                    <span>
+                                                        KSh{" "}
+                                                        {total.toLocaleString()}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
 
-                    <div className="grid grid-cols-2 gap-4 mt-6 pt-4 border-t">
-                      <div>
-                        <div className="text-xs text-gray-500">Category</div>
-                        <div className="text-sm font-medium">{product.category}</div>
-                      </div>
-                      <div>
-                        <div className="text-xs text-gray-500">Available</div>
-                        <div className="text-sm font-medium">{product.quantity} {product.unit}</div>
-                      </div>
-                      <div>
-                        <div className="text-xs text-gray-500">Location</div>
-                        <div className="text-sm font-medium">{product.location}</div>
-                      </div>
-                      <div>
-                        <div className="text-xs text-gray-500">Unit</div>
-                        <div className="text-sm font-medium">{product.unit}</div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
+                                    {/* <button
+                                                className="cursor-pointer h-10 w-10 flex items-center justify-center text-red-600 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 transition-colors shrink-0"
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    // Action: Remove Item
+                                                    removeProductFromCart(
+                                                        product.id
+                                                    );
+                                                }}
+                                                title="Remove item completely"
+                                            ></button> */}
 
-              <TabsContent value="farming" className="space-y-4">
-                <Card>
-                  <CardContent className="p-4 sm:p-6">
-                    <div className="space-y-4">
-                      <div>
-                        <h4 className="font-semibold text-gray-900 mb-2">Farmer Information</h4>
-                        <div className="space-y-2">
-                          <div className="flex justify-between">
-                            <span className="text-sm text-gray-600">Name:</span>
-                            <span className="text-sm font-medium">{product.farmer_name}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm text-gray-600">Farm Location:</span>
-                            <span className="text-sm font-medium">{product.farm_location}</span>
-                          </div>
-                          {product.farm_size && (
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-600">Farm Size:</span>
-                              <span className="text-sm font-medium">
-                                {product.farm_size} {product.farm_size_unit}
-                              </span>
+                                    {/* Action Buttons */}
+                                    <div className="grid gap-3">
+                                        {cartItem != null ? (
+                                            <div className="flex items-center gap-3">
+                                                <Button
+                                                    onClick={() => {
+                                                        navigate("/cart");
+                                                    }}
+                                                    className="cursor-pointer flex-1 bg-green-600 hover:bg-green-700 text-white h-10 text-base shadow-lg shadow-green-200"
+                                                    disabled={!product.inStock}
+                                                >
+                                                    <ShoppingCart className="w-5 h-5 mr-2" />
+                                                    {product.inStock
+                                                        ? "Proceed to Checkout"
+                                                        : "Out of Stock"}
+                                                </Button>
+                                                <button
+                                                    className="cursor-pointer h-10 w-10 flex items-center justify-center text-red-600 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 transition-colors shrink-0"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        // Action: Remove Item
+                                                        removeProductFromCart(
+                                                            product.id
+                                                        );
+                                                    }}
+                                                    title="Remove item completely"
+                                                >
+                                                    <Trash className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <Button
+                                                onClick={() => {
+                                                    addProductToCart(product);
+                                                }}
+                                                className="w-full bg-green-600 hover:bg-green-700 text-white h-10 text-base shadow-lg shadow-green-200"
+                                                disabled={!product.inStock}
+                                            >
+                                                <ShoppingCart className="w-5 h-5 mr-2" />
+                                                {product.inStock
+                                                    ? "Add to Basket"
+                                                    : "Out of Stock"}
+                                            </Button>
+                                        )}
+
+                                        <Button
+                                            variant="outline"
+                                            onClick={() =>
+                                                window.open(
+                                                    `https://wa.me/254113675687?text=Hi! I'm interested in ordering ${product.name}`,
+                                                    "_blank"
+                                                )
+                                            }
+                                            className="w-full h-10 border-green-200 text-green-700 hover:bg-green-50 hover:text-green-800"
+                                        >
+                                            <Phone className="w-4 h-4 mr-2" />
+                                            Contact Farmer Directly
+                                        </Button>
+                                    </div>
+                                </div>
                             </div>
-                          )}
-                        </div>
-                      </div>
 
-                      {(product.irrigation_method || product.water_source) && (
-                        <div className="pt-4 border-t">
-                          <h4 className="font-semibold text-gray-900 mb-2">Farming Practices</h4>
-                          <div className="space-y-2">
-                            {product.irrigation_method && (
-                              <div className="flex justify-between">
-                                <span className="text-sm text-gray-600">Irrigation:</span>
-                                <span className="text-sm font-medium">{product.irrigation_method}</span>
-                              </div>
+                            {/* Trust Signals Card */}
+                            <Card className="bg-stone-50/50 border-none shadow-none">
+                                <CardContent className="p-4 space-y-3">
+                                    <div className="flex items-start gap-3">
+                                        <div className="p-2 bg-white rounded-full shadow-sm">
+                                            <Truck className="w-4 h-4 text-green-600" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-semibold text-gray-900">
+                                                Delivery Available
+                                            </p>
+                                            <p className="text-xs text-gray-500">
+                                                Delivery arranged directly with
+                                                farmer post-purchase.
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start gap-3">
+                                        <div className="p-2 bg-white rounded-full shadow-sm">
+                                            <ShieldCheck className="w-4 h-4 text-green-600" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-semibold text-gray-900">
+                                                Verified Quality
+                                            </p>
+                                            <p className="text-xs text-gray-500">
+                                                Produce verified by platform
+                                                agents.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </div>
+
+                    {/* LEFT COLUMN: Images & Detailed Info (Spans 8 cols) */}
+                    <div className="order-2 lg:order-1 lg:col-span-7 xl:col-span-8 space-y-8">
+                        {/* Image Gallery */}
+                        <div className="space-y-4">
+                            <div
+                                className="aspect-[4/3] w-full overflow-hidden rounded-2xl bg-white shadow-sm border border-stone-100 group relative"
+                                onClick={() => setIsModalOpen(true)}
+                            >
+                                <img
+                                    src={
+                                        product.images?.[selectedImage] ||
+                                        "/placeholder.svg"
+                                    }
+                                    alt={product.name}
+                                    className="w-full h-full object-cover cursor-zoom-in transition-transform duration-500 group-hover:scale-105"
+                                />
+                                <div className="absolute bottom-4 right-4 bg-black/50 text-white text-xs px-3 py-1 rounded-full backdrop-blur-sm">
+                                    Click to expand
+                                </div>
+                            </div>
+
+                            {product.images?.length > 1 && (
+                                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                                    {product.images.map((image, index) => (
+                                        <button
+                                            key={index}
+                                            onClick={() =>
+                                                setSelectedImage(index)
+                                            }
+                                            className={`relative flex-shrink-0 w-20 h-20 overflow-hidden rounded-lg border-2 transition-all ${
+                                                selectedImage === index
+                                                    ? "border-green-600 ring-2 ring-green-100 ring-offset-1"
+                                                    : "border-transparent opacity-70 hover:opacity-100 hover:border-gray-200"
+                                            }`}
+                                        >
+                                            <img
+                                                src={
+                                                    image || "/placeholder.svg"
+                                                }
+                                                alt={`View ${index + 1}`}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </button>
+                                    ))}
+                                </div>
                             )}
-                            {product.water_source && (
-                              <div className="flex justify-between">
-                                <span className="text-sm text-gray-600">Water Source:</span>
-                                <span className="text-sm font-medium">{product.water_source}</span>
-                              </div>
-                            )}
-                          </div>
                         </div>
-                      )}
 
-                      {(product.pesticides?.length > 0 || product.fertilizers?.length > 0) && (
-                        <div className="pt-4 border-t">
-                          <h4 className="font-semibold text-gray-900 mb-2">Crop Management</h4>
-                          {product.fertilizers?.length > 0 && (
-                            <div className="mb-2">
-                              <span className="text-sm text-gray-600">Fertilizers:</span>
-                              <div className="flex flex-wrap gap-1 mt-1">
-                                {product.fertilizers.map((item, idx) => (
-                                  <Badge key={idx} variant="secondary" className="text-xs">
-                                    {item}
-                                  </Badge>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                          {product.pesticides?.length > 0 && (
-                            <div>
-                              <span className="text-sm text-gray-600">Pesticides:</span>
-                              <div className="flex flex-wrap gap-1 mt-1">
-                                {product.pesticides.map((item, idx) => (
-                                  <Badge key={idx} variant="secondary" className="text-xs">
-                                    {item}
-                                  </Badge>
-                                ))}
-                              </div>
-                            </div>
-                          )}
+                        {/* TABS - Moved inside left column for better flow */}
+                        <div className="bg-white rounded-2xl shadow-sm border border-stone-100 overflow-hidden">
+                            <Tabs defaultValue="details" className="w-full">
+                                <div className="border-b px-4 pt-2 bg-stone-50/50">
+                                    <TabsList className="bg-transparent h-10 gap-6 p-0">
+                                        <TabsTrigger
+                                            value="details"
+                                            className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-t-0 data-[state=active]:border-x-0  data-[state=active]:border-green-600 rounded-none px-0 text-slate-500 data-[state=active]:text-green-700 font-semibold"
+                                        >
+                                            Product Details
+                                        </TabsTrigger>
+                                        <TabsTrigger
+                                            value="farming"
+                                            className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-t-0 data-[state=active]:border-x-0 data-[state=active]:border-green-600 rounded-none px-0 text-slate-500 data-[state=active]:text-green-700 font-semibold"
+                                        >
+                                            Farm & Harvest
+                                        </TabsTrigger>
+                                    </TabsList>
+                                </div>
+
+                                <div className="p-6 sm:p-8">
+                                    <TabsContent
+                                        value="details"
+                                        className="mt-0 space-y-6 animate-in fade-in-50"
+                                    >
+                                        <div>
+                                            <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                                                Description
+                                            </h3>
+                                            <p className="text-slate-600 leading-relaxed">
+                                                {product.description}
+                                            </p>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 pt-6 border-t border-dashed">
+                                            <div className="space-y-1">
+                                                <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                                                    Category
+                                                </span>
+                                                <p className="font-medium text-slate-700">
+                                                    {product.category}
+                                                </p>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                                                    Harvest Unit
+                                                </span>
+                                                <p className="font-medium text-slate-700">
+                                                    {product.unit}
+                                                </p>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                                                    Location
+                                                </span>
+                                                <p className="font-medium text-slate-700">
+                                                    {product.location}
+                                                </p>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                                                    Availability
+                                                </span>
+                                                <p className="font-medium text-green-600">
+                                                    {product.quantity} left
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </TabsContent>
+
+                                    <TabsContent
+                                        value="farming"
+                                        className="mt-0 space-y-6 animate-in fade-in-50"
+                                    >
+                                        <div className="grid sm:grid-cols-2 gap-8">
+                                            <div>
+                                                <h4 className="flex items-center gap-2 font-semibold text-gray-900 mb-4">
+                                                    <MapPin className="w-4 h-4 text-green-600" />
+                                                    Farm Details
+                                                </h4>
+                                                <dl className="space-y-3 text-sm">
+                                                    <div className="flex justify-between py-2 border-b border-stone-100">
+                                                        <dt className="text-gray-500">
+                                                            Farmer
+                                                        </dt>
+                                                        <dd className="font-medium">
+                                                            {
+                                                                product.farmer_name
+                                                            }
+                                                        </dd>
+                                                    </div>
+                                                    <div className="flex justify-between py-2 border-b border-stone-100">
+                                                        <dt className="text-gray-500">
+                                                            Region
+                                                        </dt>
+                                                        <dd className="font-medium">
+                                                            {
+                                                                product.farm_location
+                                                            }
+                                                        </dd>
+                                                    </div>
+                                                    {product.farm_size && (
+                                                        <div className="flex justify-between py-2 border-b border-stone-100">
+                                                            <dt className="text-gray-500">
+                                                                Scale
+                                                            </dt>
+                                                            <dd className="font-medium">
+                                                                {
+                                                                    product.farm_size
+                                                                }{" "}
+                                                                {
+                                                                    product.farm_size_unit
+                                                                }
+                                                            </dd>
+                                                        </div>
+                                                    )}
+                                                </dl>
+                                            </div>
+
+                                            <div>
+                                                <h4 className="flex items-center gap-2 font-semibold text-gray-900 mb-4">
+                                                    <ShieldCheck className="w-4 h-4 text-green-600" />
+                                                    Practices
+                                                </h4>
+                                                <div className="space-y-4">
+                                                    {(product.irrigation_method ||
+                                                        product.water_source) && (
+                                                        <div className="bg-stone-50 p-3 rounded-lg text-sm">
+                                                            <span className="block text-xs text-gray-500 mb-1">
+                                                                Water Management
+                                                            </span>
+                                                            <div className="font-medium text-slate-700">
+                                                                {
+                                                                    product.irrigation_method
+                                                                }{" "}
+                                                                using{" "}
+                                                                {
+                                                                    product.water_source
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {product.fertilizers
+                                                        ?.length > 0 && (
+                                                        <div>
+                                                            <span className="text-xs text-gray-500 mb-2 block">
+                                                                Fertilizers Used
+                                                            </span>
+                                                            <div className="flex flex-wrap gap-2">
+                                                                {product.fertilizers.map(
+                                                                    (
+                                                                        item,
+                                                                        idx
+                                                                    ) => (
+                                                                        <Badge
+                                                                            key={
+                                                                                idx
+                                                                            }
+                                                                            variant="outline"
+                                                                            className="bg-white border-stone-200 text-stone-600 font-normal"
+                                                                        >
+                                                                            {
+                                                                                item
+                                                                            }
+                                                                        </Badge>
+                                                                    )
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </TabsContent>
+                                </div>
+                            </Tabs>
                         </div>
-                      )}
                     </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
+                </div>
+            </div>
 
-            <Card>
-              <CardContent className="p-4 sm:p-6">
-                <div className="space-y-6">
-                  <div className="space-y-4">
-                    <Label className="text-base font-semibold">
-                      Quantity ({product.unit})
-                      <span className="text-sm font-normal text-gray-500 ml-2">
-                        (Available: {product.quantity} {product.unit})
-                      </span>
-                    </Label>
-                    <div className="flex items-center gap-4">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleQuantityChange(quantity - 1)}
-                        disabled={quantity <= 1}
-                      >
-                        <Minus className="w-4 h-4" />
-                      </Button>
-                      <Input
-                        type="number"
-                        value={quantity}
-                        onChange={(e) => handleQuantityChange(Number.parseInt(e.target.value) || 1)}
-                        className="w-20 text-center"
-                        min={1}
-                        max={product.quantity}
-                      />
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleQuantityChange(quantity + 1)}
-                        disabled={quantity >= product.quantity}
-                      >
-                        <Plus className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-
-                <Separator className="my-6" />
-
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Unit Price:</span>
-                    <span className="font-semibold">
-                      KSh {product.price.toLocaleString()} per {product.unit}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Quantity:</span>
-                    <span className="font-semibold">
-                      {quantity} {product.unit}
-                    </span>
-                  </div>
-                  <Separator />
-                  <div className="flex justify-between text-lg font-bold text-green-600">
-                    <span>Total:</span>
-                    <span>KSh {total.toLocaleString()}</span>
-                  </div>
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-3 mt-6">
-                  <Button
-                    onClick={scrollToOrder}
-                    className="flex-1 bg-green-600 hover:bg-green-700 py-3"
-                    disabled={!product.inStock}
-                  >
-                    <ShoppingCart className="w-4 h-4 mr-2" />
-                    {product.inStock ? "Order Now" : "Out of Stock"}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() =>
-                      window.open(
-                        `https://wa.me/254113675687?text=Hi! I'm interested in ordering ${product.name}`,
-                        "_blank",
-                      )
-                    }
-                    className="sm:w-auto"
-                  >
-                    <Phone className="w-4 h-4 mr-2" />
-                    Call
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
-        {/* Contact & Order Section */}
-        <div id="order-section" className="grid lg:grid-cols-2 gap-8 lg:gap-12">
-          {/* Contact Info */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Contact Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <Phone className="w-5 h-5 text-green-600" />
-                </div>
-                <div>
-                  <div className="font-semibold">Phone/WhatsApp</div>
-                  <div className="text-gray-600">+254 113 675687</div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <Mail className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                  <div className="font-semibold">Email</div>
-                  <div className="text-gray-600">info@antugrow.com</div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <MapPin className="w-5 h-5 text-orange-600" />
-                </div>
-                <div>
-                  <div className="font-semibold">Location</div>
-                  <div className="text-gray-600">Nairobi, Kenya</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Order Form */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Place Your Order</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="fullName">Full Name *</Label>
-                  <Input
-                    id="fullName"
-                    value={orderForm.fullName}
-                    onChange={(e) => handleFormChange("fullName", e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number *</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    placeholder="+254 700 000 000"
-                    value={orderForm.phone}
-                    onChange={(e) => handleFormChange("phone", e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="notes">Delivery Location *</Label>
-                  <Textarea
-                    id="notes"
-                    placeholder="Enter your delivery address..."
-                    value={orderForm.notes}
-                    onChange={(e) => handleFormChange("notes", e.target.value)}
-                    required
-                    rows={3}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <div className="p-3 bg-green-50 rounded-lg border border-green-200">
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 bg-green-600 rounded-full flex items-center justify-center">
-                        <div className="w-3 h-3 bg-white rounded-full"></div>
-                      </div>
-                      <span className="font-semibold text-green-800">Payment</span>
-                    </div>
-                    <p className="text-sm text-green-700 mt-1">
-                      Pay on delivery using M-Pesa or cash.
-                    </p>
-                  </div>
-                </div>
-
-                <Button
-                  type="submit"
-                  className="w-full bg-green-600 hover:bg-green-700 py-6 text-lg"
-                  disabled={!product.inStock}
+            {/* Modal Overlay */}
+            {isModalOpen && (
+                <div
+                    className="fixed inset-0 bg-slate-900/90 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in"
+                    onClick={() => setIsModalOpen(false)}
                 >
-                  <ShoppingCart className="w-5 h-5 mr-2" />
-                  {product.inStock
-                    ? `Confirm Order - KSh ${total.toLocaleString()}`
-                    : "Product Out of Stock"}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
+                    <div className="relative max-w-5xl w-full max-h-[90vh]">
+                        <img
+                            src={
+                                product.images?.[selectedImage] ||
+                                "/placeholder.svg"
+                            }
+                            alt={product.name}
+                            className="w-full h-full object-contain rounded-lg shadow-2xl"
+                        />
+                        <button
+                            onClick={() => setIsModalOpen(false)}
+                            className="absolute -top-12 right-0 text-white/70 hover:text-white text-sm uppercase tracking-widest flex items-center gap-2"
+                        >
+                            Close{" "}
+                            <span className="text-2xl leading-none">×</span>
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
-      </div>
-
-      {/* Image Modal */}
-      {isModalOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center p-4"
-          onClick={() => setIsModalOpen(false)}
-        >
-          <div className="relative max-w-4xl max-h-full">
-            <img
-              src={product.images?.[selectedImage] || "/placeholder.svg"}
-              alt={product.name}
-              className="max-w-full max-h-full object-contain rounded-lg"
-            />
-            <button
-              onClick={() => setIsModalOpen(false)}
-              className="absolute top-4 right-4 text-white text-2xl hover:text-gray-300"
-            >
-              ×
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  )
+    );
 }
