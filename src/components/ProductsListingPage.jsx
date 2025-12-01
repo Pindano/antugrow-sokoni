@@ -146,18 +146,18 @@ export default function ProductsListingPage() {
                                             )}
                                         </div>
 
-                                        <div className="flex flex-col flex-1 p-4">
+                                        <div className="flex flex-col flex-1 px-4 pb-4">
                                             {/* ... Title and Description (Same as before) ... */}
                                             <div className="flex justify-between items-start mb-2">
                                                 <CardTitle className="text-lg font-bold text-gray-900 group-hover:text-green-600 transition-colors line-clamp-2">
                                                     {product.name}
                                                 </CardTitle>
                                             </div>
-                                            <p className="text-gray-600 text-sm mb-3 line-clamp-2 flex-1">
+                                            <p className="text-gray-600 text-sm mb-2 line-clamp-2 flex-1">
                                                 {product.short_description}
                                             </p>
 
-                                            <div className="space-y-3">
+                                            <div className="space-y-2 mt-auto">
                                                 <div className="text-xl font-bold text-green-600">
                                                     KSh{" "}
                                                     {product.price.toLocaleString()}
@@ -167,7 +167,7 @@ export default function ProductsListingPage() {
                                                 </div>
 
                                                 {/* ... Badges (Same as before) ... */}
-                                                <div className="flex flex-wrap gap-1">
+                                                {/* <div className="flex flex-wrap gap-1">
                                                     {product.badges
                                                         ?.slice(0, 2)
                                                         .map((badge, index) => (
@@ -179,7 +179,7 @@ export default function ProductsListingPage() {
                                                                 {badge}
                                                             </Badge>
                                                         ))}
-                                                </div>
+                                                </div> */}
 
                                                 {/* --- MODIFIED SECTION STARTS HERE --- */}
                                                 {product.inStock ? (
