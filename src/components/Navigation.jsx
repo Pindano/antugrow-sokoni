@@ -32,7 +32,7 @@ export function Navigation({
     showBackButton = false,
     currentProduct = null,
     // Mocking a user object for demonstration. Pass this via props or AuthContext.
-    user = { name: "Alex K.", email: "alex@example.com", image: null },
+    user = { name: "Antugrow", email: "antugrow@example.com", image: null },
 }) {
     const { cartItems } = useProductContext();
     const cartCount = cartItems?.length ?? 0;

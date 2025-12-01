@@ -3,6 +3,7 @@ import { Link } from "react-router-dom"; // Import Link for navigation
 import { Navigation } from "./Navigation";
 import { useProductContext } from "../providers/ProductProvider";
 import { Trash, ShoppingBag, Leaf, ChevronLeft } from "lucide-react";
+import CartSkeleton from "./cart-skeleton";
 // Assuming Button component from shadcn/ui
 // Since we don't have access to your exact Button component, I'm providing the definition inside the file for completeness.
 const Button = ({
@@ -57,6 +58,7 @@ export default function Cart() {
         increaseQuantity,
         decreaseQuantity,
         products,
+        loadingProducts,
     } = useProductContext();
 
     const handleRemoveItem = (id) => {
@@ -142,7 +144,7 @@ export default function Cart() {
 
                 <div className="flex justify-between items-center mb-6 pt-4 border-t border-gray-200">
                     <span className="text-xl font-bold text-gray-900">
-                        Total Harvest Value
+                        Total
                     </span>
                     <span className="text-2xl font-extrabold text-green-700">
                         KES {total.toFixed(2)}
@@ -167,205 +169,226 @@ export default function Cart() {
     return (
         <div className="min-h-screen bg-gray-50">
             <Navigation />
+            {loadingProducts ? (
+                <CartSkeleton />
+            ) : (
+                <div className="max-w-7xl mx-auto px-4 py-16 sm:py-20">
+                    <h1 className="text-4xl font-extrabold mb-2 text-gray-900 tracking-tight">
+                        Your Garden Basket
+                    </h1>
+                    <p className="text-md text-gray-600 mb-8">
+                        Your basket has {itemsCount} items
+                    </p>
 
-            <div className="max-w-7xl mx-auto px-4 py-16 sm:py-20">
-                <h1 className="text-4xl font-extrabold mb-2 text-gray-900 tracking-tight">
-                    Your Garden Basket
-                </h1>
-                <p className="text-md text-gray-600 mb-8">
-                    Your basket has {itemsCount} items
-                </p>
+                    {itemsCount === 0 ? (
+                        // Empty State - Highly improved UX with CTA
+                        <div className="text-center py-24 bg-white rounded-xl shadow-lg border border-gray-200">
+                            <ShoppingBag className="w-12 h-12 text-green-500 mx-auto mb-4" />
+                            <p className="text-gray-600 text-xl mb-6 font-semibold">
+                                Your basket is light! Time to explore some fresh
+                                produce.
+                            </p>
 
-                {itemsCount === 0 ? (
-                    // Empty State - Highly improved UX with CTA
-                    <div className="text-center py-24 bg-white rounded-xl shadow-lg border border-gray-200">
-                        <ShoppingBag className="w-12 h-12 text-green-500 mx-auto mb-4" />
-                        <p className="text-gray-600 text-xl mb-6 font-semibold">
-                            Your basket is light! Time to explore some fresh
-                            produce.
-                        </p>
-
-                        {/* --- CTA: Explore More Products --- */}
-                        <Link to="/">
-                            <Button
-                                size="lg"
-                                className="bg-green-600 hover:bg-green-700 text-white font-bold transition-all"
-                            >
-                                Start Shopping Now
-                            </Button>
-                        </Link>
-                    </div>
-                ) : (
-                    // Cart Content Grid: Use order-1/order-2 to swap content on mobile
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-                        {/* Summary Column (Order 1 on mobile, Order 2 on desktop) */}
-                        <div className="lg:col-span-4 order-1 lg:order-2">
-                            <BasketSummary />
+                            {/* --- CTA: Explore More Products --- */}
+                            <Link to="/">
+                                <Button
+                                    size="lg"
+                                    className="bg-green-600 hover:bg-green-700 text-white font-bold transition-all"
+                                >
+                                    Start Shopping Now
+                                </Button>
+                            </Link>
                         </div>
+                    ) : (
+                        // Cart Content Grid: Use order-1/order-2 to swap content on mobile
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                            {/* Summary Column (Order 1 on mobile, Order 2 on desktop) */}
+                            <div className="lg:col-span-4 order-1 lg:order-2">
+                                <BasketSummary />
+                            </div>
 
-                        {/* Product List Column (Order 2 on mobile, Order 1 on desktop) */}
-                        <div className="lg:col-span-8 order-2 lg:order-1 space-y-4">
+                            {/* Product List Column (Order 2 on mobile, Order 1 on desktop) */}
                             <div className="lg:col-span-8 order-2 lg:order-1 space-y-4">
-                                {cartItems.map((item) => {
-                                    // 1. Determine if the requested item quantity is available
-                                    const itemStockData = products.find(
-                                        (prod) => prod.id === item.product.id
-                                    );
+                                <div className="lg:col-span-8 order-2 lg:order-1 space-y-4">
+                                    {cartItems.map((item) => {
+                                        // 1. Determine if the requested item quantity is available
+                                        const itemStockData = products.find(
+                                            (prod) =>
+                                                prod.id === item.product.id
+                                        );
 
-                                    // Check availability against the product stock data
-                                    const isAvailable =
-                                        itemStockData &&
-                                        itemStockData.inStock &&
-                                        itemStockData.quantity >= item.quantity;
+                                        // Check availability against the product stock data
+                                        const isAvailable =
+                                            itemStockData &&
+                                            itemStockData.inStock &&
+                                            itemStockData.quantity >=
+                                                item.quantity;
 
-                                    // Get the available stock quantity for display
-                                    const availableStock =
-                                        itemStockData?.quantity || 0;
+                                        // Get the available stock quantity for display
+                                        const availableStock =
+                                            itemStockData?.quantity || 0;
 
-                                    // 2. Define dynamic classes based on availability
-                                    const itemClass = isAvailable
-                                        ? `bg-white p-2 sm:p-2 rounded-xl shadow-md border border-gray-100 flex items-center gap-4 transition-shadow hover:shadow-lg`
-                                        : `bg-red-50 p-2 sm:p-2 rounded-xl shadow-md border-2 border-red-300 flex items-center gap-4 transition-shadow hover:shadow-lg opacity-85`;
+                                        // 2. Define dynamic classes based on availability
+                                        const itemClass = isAvailable
+                                            ? `bg-white p-2 sm:p-2 rounded-xl shadow-md border border-gray-100 flex items-center gap-4 transition-shadow hover:shadow-lg`
+                                            : `bg-red-50 p-2 sm:p-2 rounded-xl shadow-md border-2 border-red-300 flex items-center gap-4 transition-shadow hover:shadow-lg opacity-85`;
 
-                                    return (
-                                        <div
-                                            key={item.product?.id}
-                                            className={itemClass} // Apply the dynamic class here
-                                        >
-                                            <div className="flex-1 min-w-0 flex items-center gap-4">
-                                                {/* Product Image */}
-                                                <Link
-                                                    to={`/products/${item.product?.id}`}
-                                                    className="shrink-0"
-                                                >
-                                                    <img
-                                                        src={
-                                                            item.product
-                                                                ?.images?.[0]
-                                                        }
-                                                        alt={item.product?.name}
-                                                        className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-lg border border-gray-100"
-                                                    />
-                                                </Link>
-
-                                                {/* Product Details & Warning */}
-                                                <div className="flex-1 min-w-0">
+                                        return (
+                                            <div
+                                                key={item.product?.id}
+                                                className={itemClass} // Apply the dynamic class here
+                                            >
+                                                <div className="flex-1 min-w-0 flex items-center gap-4">
+                                                    {/* Product Image */}
                                                     <Link
                                                         to={`/products/${item.product?.id}`}
+                                                        className="shrink-0"
                                                     >
-                                                        <h3 className="text-base sm:text-lg font-semibold text-gray-900 truncate hover:text-green-600 transition-colors">
-                                                            {item.product?.name}
-                                                        </h3>
+                                                        <img
+                                                            src={
+                                                                item.product
+                                                                    ?.images?.[0]
+                                                            }
+                                                            alt={
+                                                                item.product
+                                                                    ?.name
+                                                            }
+                                                            className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-lg border border-gray-100"
+                                                        />
                                                     </Link>
-                                                    <p className="text-xs sm:text-sm text-gray-500">
-                                                        {item.product?.category}{" "}
-                                                        | Price per unit: KES{" "}
-                                                        {item.product?.price.toFixed(
-                                                            2
-                                                        )}
-                                                    </p>
 
-                                                    {/* 3. Display Warning if Not Available */}
-                                                    {!isAvailable && (
-                                                        <p className="text-xs sm:text-sm font-medium text-red-600 mt-1 p-1 bg-red-100 rounded-md inline-block">
-                                                            Only{" "}
-                                                            {availableStock}{" "}
+                                                    {/* Product Details & Warning */}
+                                                    <div className="flex-1 min-w-0">
+                                                        <Link
+                                                            to={`/products/${item.product?.id}`}
+                                                        >
+                                                            <h3 className="text-base sm:text-lg font-semibold text-gray-900 truncate hover:text-green-600 transition-colors">
+                                                                {
+                                                                    item.product
+                                                                        ?.name
+                                                                }
+                                                            </h3>
+                                                        </Link>
+                                                        <p className="text-xs sm:text-sm text-gray-500">
+                                                            {
+                                                                item.product
+                                                                    ?.category
+                                                            }{" "}
+                                                            | Price per unit:
+                                                            KES{" "}
+                                                            {item.product?.price.toFixed(
+                                                                2
+                                                            )}
+                                                        </p>
+
+                                                        {/* 3. Display Warning if Not Available */}
+                                                        {!isAvailable && (
+                                                            <p className="text-xs sm:text-sm font-medium text-red-600 mt-1 p-1 bg-red-100 rounded-md inline-block">
+                                                                Only{" "}
+                                                                {availableStock}{" "}
+                                                                {
+                                                                    item
+                                                                        ?.product
+                                                                        ?.unit
+                                                                }{" "}
+                                                                available.
+                                                                Please reduce
+                                                                your quantity.
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {/* Quantity Controls */}
+                                                <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden shrink-0 h-10">
+                                                    <button
+                                                        onClick={() =>
+                                                            decreaseQuantity(
+                                                                item.product?.id
+                                                            )
+                                                        }
+                                                        className="px-3 h-full hover:bg-gray-100 text-gray-700 transition-colors border-r border-gray-300 disabled:opacity-50"
+                                                        disabled={
+                                                            item.quantity <=
+                                                            MIN_QTY
+                                                        }
+                                                    >
+                                                        -
+                                                    </button>
+                                                    <span className="px-4 font-medium text-gray-900 min-w-[4rem] text-center text-sm">
+                                                        {item?.quantity}{" "}
+                                                        <span className="text-xs text-gray-500 hidden sm:inline">
                                                             {
                                                                 item?.product
                                                                     ?.unit
-                                                            }{" "}
-                                                            available. Please
-                                                            reduce your
-                                                            quantity.
-                                                        </p>
-                                                    )}
+                                                            }
+                                                        </span>
+                                                    </span>
+                                                    <button
+                                                        onClick={() =>
+                                                            increaseQuantity(
+                                                                item.product?.id
+                                                            )
+                                                        }
+                                                        className="px-3 h-full hover:bg-gray-100 text-gray-700 transition-colors border-l border-gray-300 disabled:opacity-50"
+                                                        // Disable if requested quantity is equal to or exceeds available stock
+                                                        // disabled={
+                                                        //     item.quantity >=
+                                                        //     availableStock
+                                                        // }
+                                                    >
+                                                        +
+                                                    </button>
+                                                </div>
+
+                                                {/* Price & Remove Button */}
+                                                <div className="text-right flex items-center gap-3 shrink-0">
+                                                    <p className="font-bold text-lg text-green-700 min-w-[6rem] hidden sm:block">
+                                                        KES{" "}
+                                                        {(
+                                                            item.product
+                                                                ?.price *
+                                                            item?.quantity
+                                                        ).toFixed(2)}
+                                                    </p>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-9 w-9 text-red-500 hover:bg-red-50/50 hover:text-red-600"
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            handleRemoveItem(
+                                                                item.product?.id
+                                                            );
+                                                        }}
+                                                        title="Remove item"
+                                                    >
+                                                        <div>
+                                                            <Trash className="w-5 h-5" />
+                                                        </div>
+                                                    </Button>
                                                 </div>
                                             </div>
-
-                                            {/* Quantity Controls */}
-                                            <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden shrink-0 h-10">
-                                                <button
-                                                    onClick={() =>
-                                                        decreaseQuantity(
-                                                            item.product?.id
-                                                        )
-                                                    }
-                                                    className="px-3 h-full hover:bg-gray-100 text-gray-700 transition-colors border-r border-gray-300 disabled:opacity-50"
-                                                    disabled={
-                                                        item.quantity <= MIN_QTY
-                                                    }
-                                                >
-                                                    -
-                                                </button>
-                                                <span className="px-4 font-medium text-gray-900 min-w-[4rem] text-center text-sm">
-                                                    {item?.quantity}{" "}
-                                                    <span className="text-xs text-gray-500 hidden sm:inline">
-                                                        {item?.product?.unit}
-                                                    </span>
-                                                </span>
-                                                <button
-                                                    onClick={() =>
-                                                        increaseQuantity(
-                                                            item.product?.id
-                                                        )
-                                                    }
-                                                    className="px-3 h-full hover:bg-gray-100 text-gray-700 transition-colors border-l border-gray-300 disabled:opacity-50"
-                                                    // Disable if requested quantity is equal to or exceeds available stock
-                                                    // disabled={
-                                                    //     item.quantity >=
-                                                    //     availableStock
-                                                    // }
-                                                >
-                                                    +
-                                                </button>
-                                            </div>
-
-                                            {/* Price & Remove Button */}
-                                            <div className="text-right flex items-center gap-3 shrink-0">
-                                                <p className="font-bold text-lg text-green-700 min-w-[6rem] hidden sm:block">
-                                                    KES{" "}
-                                                    {(
-                                                        item.product?.price *
-                                                        item?.quantity
-                                                    ).toFixed(2)}
-                                                </p>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-9 w-9 text-red-500 hover:bg-red-50/50 hover:text-red-600"
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        handleRemoveItem(
-                                                            item.product?.id
-                                                        );
-                                                    }}
-                                                    title="Remove item"
-                                                >
-                                                    <div>
-                                                        <Trash className="w-5 h-5" />
-                                                    </div>
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                            {/* --- CTA: Explore More Products (Above Checkout) --- */}
-                            <div className="pt-6">
-                                <Link to="/">
-                                    <Button
-                                        variant="outline"
-                                        className="text-green-600 flex items-center hover:bg-green-50 border-green-200"
-                                    >
-                                        <ChevronLeft className="w-4 h-4 mr-2" />
-                                        Continue Shopping
-                                    </Button>
-                                </Link>
+                                        );
+                                    })}
+                                </div>
+                                {/* --- CTA: Explore More Products (Above Checkout) --- */}
+                                <div className="pt-6">
+                                    <Link to="/">
+                                        <Button
+                                            variant="outline"
+                                            className="text-green-600 flex items-center hover:bg-green-50 border-green-200"
+                                        >
+                                            <ChevronLeft className="w-4 h-4 mr-2" />
+                                            Continue Shopping
+                                        </Button>
+                                    </Link>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )}
-            </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 }
