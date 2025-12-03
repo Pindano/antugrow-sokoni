@@ -1,201 +1,365 @@
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Search, ShoppingCart, Phone, Mail, MapPin, Loader2 } from "lucide-react"
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Minus, Plus } from "lucide-react";
+import {
+    Search,
+    ShoppingCart,
+    Phone,
+    Mail,
+    MapPin,
+    Loader2,
+} from "lucide-react";
+import { Navigation } from "./Navigation";
+import { Link } from "react-router-dom";
+import { useProductContext } from "../providers/ProductProvider";
+import { Trash } from "lucide-react";
+import WelcomeHeader from "./WelcomePage";
+import SiteFooter from "./Footer";
 
-import { getProductListings } from "../lib/supabase"
-import { Navigation } from "./Navigation"
-import { Link } from "react-router-dom"
+// Define the number of skeletons to show while loading
+const SKELETON_COUNT = 9;
+
+function ProductSkeleton() {
+    return (
+        <Card className="py-0 transition-all duration-200 bg-white h-full flex flex-col animate-pulse">
+            {/* Image Placeholder */}
+            <div className="relative aspect-[4/3] overflow-hidden rounded-t-lg bg-gray-200">
+                {/* Image area */}
+            </div>
+
+            <div className="flex flex-col flex-1 p-4">
+                {/* Title Placeholder */}
+                <div className="h-5 bg-gray-300 rounded w-3/4 mb-2"></div>
+
+                {/* Description Placeholder */}
+                <div className="h-4 bg-gray-200 rounded w-full mb-1"></div>
+                <div className="h-4 bg-gray-200 rounded w-2/3 mb-3 flex-1"></div>
+
+                <div className="space-y-3">
+                    {/* Price Placeholder */}
+                    <div className="h-6 bg-green-200 rounded w-1/2"></div>
+
+                    {/* Badges Placeholder */}
+                    <div className="flex flex-wrap gap-1">
+                        <div className="h-5 w-12 bg-gray-200 rounded-full"></div>
+                        <div className="h-5 w-16 bg-gray-200 rounded-full"></div>
+                    </div>
+
+                    {/* Button Placeholder */}
+                    <div className="h-10 bg-gray-300 rounded w-full"></div>
+                </div>
+            </div>
+        </Card>
+    );
+}
 
 export default function ProductsListingPage() {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [products, setProducts] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+    const [searchTerm, setSearchTerm] = useState("");
+    const {
+        products,
+        loadingProducts: loading,
+        error,
+        fetchProducts,
+        sendReminderEmail,
+        addProductToCart,
+        increaseQuantity,
+        decreaseQuantity,
+        removeProductFromCart,
+        cartItems,
+        MIN_QTY,
+    } = useProductContext();
 
-  useEffect(() => {
-    fetchProducts()
-  }, [])
+    const filteredProducts = products.filter(
+        (product) =>
+            product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            product.short_description
+                .toLowerCase()
+                .includes(searchTerm.toLowerCase()) ||
+            product.category.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
-  const fetchProducts = async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const data = await getProductListings()
-      setProducts(data)
-    } catch (err) {
-      console.error('Error loading products:', err)
-      setError('Failed to load products. Please try again.')
-    } finally {
-      setLoading(false)
-    }
-  }
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-green-50 to-orange-50">
+            <Navigation />
 
-  const filteredProducts = products.filter(
-    (product) =>
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.short_description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.category.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+            <WelcomeHeader />
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-orange-50">
-      <Navigation />
-
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="text-center">
-            <h1 className="text-5xl font-bold text-gray-900 mb-4">Karibu Sokoni</h1>
-            <p className="text-xl text-gray-600 mb-6">Buy readily available fresh farm products</p>
-
-            {/* Search Bar */}
-            <div className="max-w-md mx-auto relative mb-6">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <Input
-                type="text"
-                placeholder="Search products..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 py-3 text-lg"
-              />
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <div className="max-w-7xl mx-auto px-4 py-12">
-        {/* Products Grid */}
-        <div className="mb-8">
-          {loading ? (
-            <div className="text-center py-12">
-              <Loader2 className="w-12 h-12 animate-spin text-green-600 mx-auto mb-4" />
-              <p className="text-gray-600 text-lg">Loading products...</p>
-            </div>
-          ) : error ? (
-            <div className="text-center py-12">
-              <p className="text-red-600 text-lg mb-4">{error}</p>
-              <Button onClick={fetchProducts} className="bg-green-600 hover:bg-green-700">
-                Try Again
-              </Button>
-            </div>
-          ) : filteredProducts.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-500 text-lg">
-                {searchTerm ? 'No products found matching your search.' : 'No products available at the moment.'}
-              </p>
-            </div>
-          ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredProducts.map((product) => (
-                <Link key={product.id} to={`/products/${product.id}`}>
-                  <Card className="group cursor-pointer hover:shadow-xl py-0 transition-all duration-300 hover:-translate-y-1 bg-white h-full flex flex-col">
-                    <div className="relative aspect-[4/3] overflow-hidden rounded-t-lg">
-                      <img
-                        src={product.images?.[0] || "/placeholder.svg"}
-                        alt={product.name}
-                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      {!product.inStock && (
-                        <div className="absolute top-2 right-2">
-                          <Badge variant="secondary" className="bg-red-100 text-red-800">
-                            Out of Stock
-                          </Badge>
+            <div className="max-w-7xl mx-auto px-4 py-12">
+                {/* Products Grid */}
+                <div className="mb-8">
+                    {loading ? (
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 xxl:grid-cols-4 gap-6">
+                            {/* Render multiple skeletons based on SKELETON_COUNT */}
+                            {Array.from({ length: SKELETON_COUNT }).map(
+                                (_, index) => (
+                                    <ProductSkeleton key={index} />
+                                )
+                            )}
                         </div>
-                      )}
-                    </div>
-
-                    <div className="flex flex-col flex-1 p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <CardTitle className="text-lg font-bold text-gray-900 group-hover:text-green-600 transition-colors line-clamp-2">
-                          {product.name}
-                        </CardTitle>
-                      </div>
-                      <p className="text-gray-600 text-sm mb-3 line-clamp-2 flex-1">{product.short_description}</p>
-
-                      <div className="space-y-3">
-                        <div className="text-xl font-bold text-green-600">
-                          KSh {product.price.toLocaleString()}
-                          <span className="text-sm font-normal text-gray-500 ml-1">per {product.unit}</span>
+                    ) : error ? (
+                        <div className="text-center py-12">
+                            <p className="text-red-600 text-lg mb-4">{error}</p>
+                            <Button
+                                onClick={fetchProducts}
+                                className="bg-green-600 hover:bg-green-700"
+                            >
+                                Try Again
+                            </Button>
                         </div>
-
-                        <div className="flex flex-wrap gap-1">
-                          {product.badges?.slice(0, 2).map((badge, index) => (
-                            <Badge key={index} variant="secondary" className="text-xs">
-                              {badge}
-                            </Badge>
-                          ))}
+                    ) : filteredProducts.length === 0 ? (
+                        <div className="text-center py-12">
+                            <p className="text-gray-500 text-lg">
+                                {searchTerm
+                                    ? "No products found matching your search."
+                                    : "No products available at the moment."}
+                            </p>
                         </div>
+                    ) : (
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 xxl:grid-cols-4 gap-6">
+                            {filteredProducts.map((product) => (
+                                <Link
+                                    key={product.id}
+                                    to={`/products/${product.id}`}
+                                >
+                                    <Card className="group cursor-pointer hover:shadow-xl py-0 transition-all duration-200 bg-white h-full flex flex-col">
+                                        {/* ... Image Section (Same as before) ... */}
+                                        <div className="relative aspect-[4/3] overflow-hidden rounded-t-lg">
+                                            <img
+                                                src={
+                                                    product.images?.[0] ||
+                                                    "/placeholder.svg"
+                                                }
+                                                alt={product.name}
+                                                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                            />
+                                            {!product.inStock && (
+                                                <div className="absolute top-2 right-2">
+                                                    <Badge
+                                                        variant="secondary"
+                                                        className="bg-red-100 text-red-800"
+                                                    >
+                                                        Out of Stock
+                                                    </Badge>
+                                                </div>
+                                            )}
+                                        </div>
 
-                        <Button
-                          className="w-full bg-green-600 hover:bg-green-700 group-hover:bg-green-700 transition-colors"
-                          disabled={!product.inStock}
-                        >
-                          <ShoppingCart className="w-4 h-4 mr-2" />
-                          {product.inStock ? "View Details" : "Out of Stock"}
-                        </Button>
-                      </div>
-                    </div>
-                  </Card>
-                </Link>
-              ))}
+                                        <div className="flex flex-col flex-1 px-4 pb-4">
+                                            {/* ... Title and Description (Same as before) ... */}
+                                            <div className="flex justify-between items-start mb-2">
+                                                <CardTitle className="text-lg font-bold text-gray-900 group-hover:text-green-600 transition-colors line-clamp-2">
+                                                    {product.name}
+                                                </CardTitle>
+                                            </div>
+                                            <p className="text-gray-600 text-sm mb-2 line-clamp-2 flex-1">
+                                                {product.short_description}
+                                            </p>
+
+                                            <div className="space-y-2 mt-auto">
+                                                <div className="text-xl font-bold text-green-600">
+                                                    KSh{" "}
+                                                    {product.price.toLocaleString()}
+                                                    <span className="text-sm font-normal text-gray-500 ml-1">
+                                                        per {product.unit}
+                                                    </span>
+                                                </div>
+
+                                                {/* ... Badges (Same as before) ... */}
+                                                {/* <div className="flex flex-wrap gap-1">
+                                                    {product.badges
+                                                        ?.slice(0, 2)
+                                                        .map((badge, index) => (
+                                                            <Badge
+                                                                key={index}
+                                                                variant="secondary"
+                                                                className="text-xs"
+                                                            >
+                                                                {badge}
+                                                            </Badge>
+                                                        ))}
+                                                </div> */}
+
+                                                {/* --- MODIFIED SECTION STARTS HERE --- */}
+                                                {product.inStock ? (
+                                                    (() => {
+                                                        // Note: The structure of cartItems should be [{ product: { id }, quantity: N }, ...]
+                                                        const cartItem =
+                                                            cartItems.find(
+                                                                (item) =>
+                                                                    item.product
+                                                                        .id ===
+                                                                    product.id
+                                                            );
+
+                                                        // Get quantity, defaulting to 0 if not found
+                                                        const quantityInCart =
+                                                            cartItem
+                                                                ? cartItem.quantity
+                                                                : 0;
+
+                                                        // Remove the console.log from the final production code
+                                                        // console.log(cartItem);
+
+                                                        // ----------------------------------------------------------------------
+                                                        // Conditional Rendering based on whether the item is in the cart
+                                                        // ----------------------------------------------------------------------
+
+                                                        return quantityInCart >
+                                                            0 ? ( // Check quantityInCart > 0 instead of just cartItem
+                                                            // OPTION A: Item is in Cart -> Show Quantity Controls & Remove Button
+                                                            <div className="flex items-center w-full h-10 gap-2">
+                                                                {/* ------------------------------------------------------ */}
+                                                                {/* QUANTITY STEPPER (Main Control) */}
+                                                                {/* ------------------------------------------------------ */}
+                                                                <div
+                                                                    className="flex items-center justify-between h-10 bg-green-50 border border-green-600 rounded-md overflow-hidden flex-1 min-w-[150px]"
+                                                                    onClick={(
+                                                                        e
+                                                                    ) => {
+                                                                        // Critical: Prevent Link navigation when clicking the empty space in this div
+                                                                        e.preventDefault();
+                                                                        e.stopPropagation();
+                                                                    }}
+                                                                >
+                                                                    {/* LEFT BUTTON: DECREMENT (-) */}
+                                                                    <button
+                                                                        // Disabled if at minimum quantity (MIN_QTY = 5)
+                                                                        disabled={
+                                                                            quantityInCart <=
+                                                                            MIN_QTY
+                                                                        }
+                                                                        className={`h-full px-3 transition-colors flex items-center justify-center border-r border-green-200 
+                        ${
+                            quantityInCart <= MIN_QTY
+                                ? "text-gray-400 cursor-not-allowed" // Disabled state
+                                : "text-green-700 hover:bg-green-100" // Active state
+                        }`}
+                                                                        onClick={(
+                                                                            e
+                                                                        ) => {
+                                                                            e.preventDefault();
+                                                                            e.stopPropagation();
+
+                                                                            // Action: Decrease Quantity (only if above the minimum)
+                                                                            if (
+                                                                                quantityInCart >
+                                                                                MIN_QTY
+                                                                            ) {
+                                                                                decreaseQuantity(
+                                                                                    product.id
+                                                                                );
+                                                                            }
+                                                                        }}
+                                                                        title={`Decrease quantity (Min ${MIN_QTY} kgs)`}
+                                                                    >
+                                                                        <Minus className="w-4 h-4" />
+                                                                    </button>
+
+                                                                    {/* CENTER: QUANTITY DISPLAY (with minimum warning) */}
+                                                                    <Link
+                                                                        to={`/products/${product.id}`}
+                                                                        className="font-bold text-green-800 text-sm whitespace-nowrap px-2 w-full h-full text-center flex justify-center items-center"
+                                                                    >
+                                                                        {
+                                                                            quantityInCart
+                                                                        }{" "}
+                                                                        kgs in
+                                                                        cart{" "}
+                                                                        {quantityInCart ===
+                                                                            MIN_QTY && (
+                                                                            <span className="ml-1 text-xs font-normal text-gray-500">
+                                                                                (Min)
+                                                                            </span>
+                                                                        )}
+                                                                    </Link>
+
+                                                                    {/* RIGHT BUTTON: INCREMENT (+) */}
+                                                                    <button
+                                                                        className="h-full px-3 text-green-700 hover:bg-green-200 transition-colors flex items-center justify-center border-l border-green-200"
+                                                                        onClick={(
+                                                                            e
+                                                                        ) => {
+                                                                            e.preventDefault();
+                                                                            e.stopPropagation();
+                                                                            // Action: Increase Quantity
+                                                                            increaseQuantity(
+                                                                                product.id
+                                                                            );
+                                                                        }}
+                                                                        title="Increase quantity"
+                                                                    >
+                                                                        <Plus className="w-4 h-4" />
+                                                                    </button>
+                                                                </div>
+
+                                                                {/* ------------------------------------------------------ */}
+                                                                {/* DEDICATED REMOVE BUTTON (TRASH) */}
+                                                                {/* ------------------------------------------------------ */}
+                                                                <button
+                                                                    className="cursor-pointer h-10 w-10 flex items-center justify-center text-red-600 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 transition-colors shrink-0"
+                                                                    onClick={(
+                                                                        e
+                                                                    ) => {
+                                                                        e.preventDefault();
+                                                                        e.stopPropagation();
+                                                                        // Action: Remove Item
+                                                                        removeProductFromCart(
+                                                                            product.id
+                                                                        );
+                                                                    }}
+                                                                    title="Remove item completely"
+                                                                >
+                                                                    <Trash className="w-4 h-4" />
+                                                                </button>
+                                                            </div>
+                                                        ) : (
+                                                            // OPTION B: Item NOT in Cart -> Show Add Button
+                                                            <Button
+                                                                onClick={(
+                                                                    e
+                                                                ) => {
+                                                                    e.preventDefault();
+                                                                    e.stopPropagation();
+                                                                    addProductToCart(
+                                                                        product
+                                                                    );
+                                                                }}
+                                                                className="w-full bg-green-600 hover:bg-green-700 group-hover:bg-green-700 cursor-pointer transition-colors"
+                                                            >
+                                                                <ShoppingCart className="w-4 h-4 mr-2" />
+                                                                Add to Cart
+                                                            </Button>
+                                                        );
+                                                    })()
+                                                ) : (
+                                                    // Out of Stock Button
+                                                    <Button
+                                                        variant="outline"
+                                                        className="w-full border-dashed text-gray-700 hover:bg-gray-50"
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            sendReminderEmail(
+                                                                product.id
+                                                            );
+                                                        }}
+                                                    >
+                                                        <Mail className="w-4 h-4 mr-2" />
+                                                        Remind Me
+                                                    </Button>
+                                                )}
+                                                {/* --- MODIFIED SECTION ENDS HERE --- */}
+                                            </div>
+                                        </div>
+                                    </Card>
+                                </Link>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
-          )}
         </div>
-
-        {/* Contact Section */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 mt-16">
-          <div className="text-center mb-8">
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">Need Help with Your Order?</h3>
-            <p className="text-gray-600">Contact us directly for bulk orders or special requests</p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Phone className="w-8 h-8 text-green-600" />
-              </div>
-              <h4 className="font-semibold text-gray-900 mb-2">Phone/WhatsApp</h4>
-              <p className="text-gray-600">+254 113 675687</p>
-              <Button
-                variant="outline"
-                className="mt-3 bg-transparent"
-                onClick={() =>
-                  window.open("https://wa.me/254113675687?text=Hi! I'm interested in ordering fruits", "_blank")
-                }
-              >
-                Contact Us
-              </Button>
-            </div>
-
-            <div className="text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Mail className="w-8 h-8 text-blue-600" />
-              </div>
-              <h4 className="font-semibold text-gray-900 mb-2">Email</h4>
-              <p className="text-gray-600">info@antugrow.com</p>
-              <Button
-                variant="outline"
-                className="mt-3 bg-transparent"
-                onClick={() => window.open("mailto:info@antugrow.com", "_blank")}
-              >
-                Send Email
-              </Button>
-            </div>
-
-            <div className="text-center">
-              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <MapPin className="w-8 h-8 text-orange-600" />
-              </div>
-              <h4 className="font-semibold text-gray-900 mb-2">Location</h4>
-              <p className="text-gray-600">Nairobi, Kenya</p>
-              <p className="text-sm text-gray-500 mt-1">Same day delivery available</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+    );
 }
