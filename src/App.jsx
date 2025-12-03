@@ -14,6 +14,7 @@ import { ProductProvider } from "./providers/ProductProvider.jsx";
 import Cart from "./components/Cart.jsx";
 import SiteFooter from "./components/Footer.jsx";
 import { Toaster } from "react-hot-toast";
+import OrdersPage from "./components/Orders.jsx";
 function App() {
     return (
         <AuthProvider>
@@ -30,6 +31,7 @@ function App() {
                                 element={<ProductPage />}
                             />
                             <Route path="/cart" element={<Cart />} />
+                            <Route path="/orders" element={<OrdersPage />} />
                             <Route
                                 path="/list-product"
                                 element={<ProductListingForm />}

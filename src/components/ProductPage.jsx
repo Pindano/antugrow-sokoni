@@ -234,7 +234,7 @@ Payment: Cash/M-Pesa on delivery`;
                                                 )
                                             )}
                                         </div>
-                                        <h1 className="text-3xl font-bold text-slate-900 leading-tight">
+                                        <h1 className="text-2xl font-bold text-slate-900 leading-tight">
                                             {product.name}
                                         </h1>
                                         <div className="flex items-center gap-1 mt-2">
@@ -254,7 +254,7 @@ Payment: Cash/M-Pesa on delivery`;
                                 </div>
 
                                 <div className="flex items-baseline gap-2 mb-6">
-                                    <span className="text-4xl font-bold text-green-700">
+                                    <span className="text-2xl font-bold text-green-700">
                                         KSh {product.price.toLocaleString()}
                                     </span>
                                     <span className="text-gray-500 font-medium">

@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom"; // Import Link for navigation
+import { Link } from "react-router-dom";
 import { Navigation } from "./Navigation";
 import { useProductContext } from "../providers/ProductProvider";
-import { Trash, ShoppingBag, Leaf, ChevronLeft } from "lucide-react";
+import { Trash, ShoppingBag, ChevronLeft, Loader2 } from "lucide-react";
 import CartSkeleton from "./cart-skeleton";
-// Assuming Button component from shadcn/ui
-// Since we don't have access to your exact Button component, I'm providing the definition inside the file for completeness.
+import { CheckoutModal } from "./checkout-modal";
+
+// --- Mock Button Component (Preserved from original) ---
 const Button = ({
     children,
     className,
@@ -13,11 +14,11 @@ const Button = ({
     variant,
     size,
     disabled,
+    loading,
     ...props
 }) => {
-    // Simple mock button implementation for demonstration
     const baseStyle =
-        "px-4 py-2 rounded-lg font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2";
+        "px-4 py-2 rounded-lg font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 flex items-center justify-center";
     let style = baseStyle;
 
     if (variant === "outline") {
@@ -25,7 +26,6 @@ const Button = ({
     } else if (variant === "ghost") {
         style = `${baseStyle} bg-transparent hover:bg-gray-100 text-gray-700 p-2`;
     } else {
-        // Default primary style (green)
         style = `${baseStyle} bg-green-600 text-white hover:bg-green-700 shadow-md`;
     }
 
@@ -38,17 +38,19 @@ const Button = ({
     return (
         <button
             className={`${style} ${className} ${
-                disabled ? "opacity-50 cursor-not-allowed" : ""
+                disabled || loading ? "opacity-50 cursor-not-allowed" : ""
             }`}
             onClick={onClick}
-            disabled={disabled}
+            disabled={disabled || loading}
             {...props}
         >
+            {loading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
             {children}
         </button>
     );
 };
 
+// --- Main Cart Component ---
 export default function Cart() {
     // --- Mocking Context Logic for demonstration ---
     const {
@@ -61,22 +63,20 @@ export default function Cart() {
         loadingProducts,
     } = useProductContext();
 
+    const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+
     const handleRemoveItem = (id) => {
-        // This should call removeProductFromCart from context
         removeProductFromCart(id);
     };
     // ---------------------------------------------
 
-    // Calculate Totals based on current cartItems state
+    // Calculate Subtotal (sum of all item totals)
+    // Note: Shipping is now calculated in the modal dynamically
     const subtotal = cartItems.reduce(
         (acc, item) => acc + item.product?.price * item?.quantity,
         0
     );
-    const shipping = 15.0; // Fixed shipping fee
-    const total = subtotal + shipping;
     const itemsCount = cartItems?.length ?? 0;
-
-    // Assuming MIN_QTY, products, cartItems, shipping, and Button component are available in scope.
 
     const BasketSummary = () => {
         // 1. Determine which cart items are currently available
@@ -84,7 +84,6 @@ export default function Cart() {
             const itemStockData = products.find(
                 (prod) => prod.id === item.product.id
             );
-            // An item is available if its product data exists, it's in stock, and the requested quantity is met
             return (
                 itemStockData &&
                 itemStockData.inStock &&
@@ -92,30 +91,22 @@ export default function Cart() {
             );
         });
 
-        // 2. Recalculate Totals based ONLY on available items
-        const subtotal = availableItems.reduce(
+        const availableSubtotal = availableItems.reduce(
             (acc, item) => acc + item.product.price * item.quantity,
             0
         );
-        const itemsCount = availableItems.length;
-
-        // Assuming tax/platform fee is negligible or zero for simplicity here,
-        // or handled elsewhere. We calculate total simply as subtotal + shipping.
-        const total = subtotal + shipping;
+        const availableCount = availableItems.length;
 
         // 3. Determine if Checkout should be disabled
-        // If the count of items in the cart (cartItems.length) differs from the count of available items,
-        // or if the cart is completely empty, disable checkout.
         const hasUnavailableItems = cartItems.length !== availableItems.length;
         const isBasketEmpty = cartItems.length === 0;
         const canCheckout = !hasUnavailableItems && !isBasketEmpty;
 
-        // Use a clearer state for the button
         const checkoutMessage = isBasketEmpty
             ? "Basket is Empty"
             : hasUnavailableItems
             ? "Unavailable Items Found"
-            : "Finalize Your Order";
+            : "Checkout";
 
         return (
             <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 lg:sticky lg:top-20">
@@ -123,52 +114,55 @@ export default function Cart() {
                     Harvest Summary
                 </h2>
 
-                {/* Display warning if there are unavailable items */}
-
                 <div className="space-y-3 pb-4 mb-4">
                     <div className="flex justify-between text-gray-700 text-sm">
-                        {/* Display itemsCount based on available items */}
-                        <span>Produce Value ({itemsCount} items)</span>
+                        <span>Produce Value ({availableCount} items)</span>
                         <span className="font-medium">
-                            KES {subtotal.toFixed(2)}
+                            KES {availableSubtotal.toFixed(0)}
                         </span>
                     </div>
-                    <div className="flex justify-between text-gray-700 text-sm">
-                        <span>Delivery Estimate</span>
-                        <span className="font-medium">
-                            KES {shipping.toFixed(2)}
-                        </span>
+                    <div className="flex justify-between text-gray-500 text-xs italic">
+                        <span>Delivery Fee</span>
+                        <span>Calculated at checkout</span>
                     </div>
-                    {/* Platform fee is currently commented out, keeping it clean */}
                 </div>
 
                 <div className="flex justify-between items-center mb-6 pt-4 border-t border-gray-200">
                     <span className="text-xl font-bold text-gray-900">
-                        Total
+                        Subtotal
                     </span>
                     <span className="text-2xl font-extrabold text-green-700">
-                        KES {total.toFixed(2)}
+                        KES {availableSubtotal.toFixed(0)}
                     </span>
                 </div>
 
                 <Button
                     className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 text-lg rounded-xl transition duration-200 shadow-lg disabled:bg-gray-400 disabled:shadow-none disabled:cursor-not-allowed"
-                    disabled={!canCheckout} // Disable if any condition fails
+                    disabled={!canCheckout}
+                    onClick={() => setIsCheckoutOpen(true)}
                 >
                     {checkoutMessage}
                 </Button>
 
-                <p className="text-xs text-gray-500 mt-4 text-center">
+                {/* <p className="text-xs text-gray-500 mt-4 text-center">
                     Secure Checkout Swypt
-                </p>
+                </p> */}
             </div>
         );
     };
 
-    console.log("Rendering Cart with items:", cartItems?.length);
     return (
         <div className="min-h-screen bg-gray-50">
             <Navigation />
+
+            {/* Checkout Modal */}
+            <CheckoutModal
+                isOpen={isCheckoutOpen}
+                onClose={() => setIsCheckoutOpen(false)}
+                cartTotal={subtotal}
+                cartItems={cartItems}
+            />
+
             {loadingProducts ? (
                 <CartSkeleton />
             ) : (
@@ -181,16 +175,14 @@ export default function Cart() {
                     </p>
 
                     {itemsCount === 0 ? (
-                        // Empty State - Highly improved UX with CTA
-                        <div className="text-center py-24 bg-white rounded-xl shadow-lg border border-gray-200">
+                        <div className="text-center py-24 bg-white rounded-xl shadow-lg border border-gray-200 ">
                             <ShoppingBag className="w-12 h-12 text-green-500 mx-auto mb-4" />
                             <p className="text-gray-600 text-xl mb-6 font-semibold">
                                 Your basket is light! Time to explore some fresh
                                 produce.
                             </p>
 
-                            {/* --- CTA: Explore More Products --- */}
-                            <Link to="/">
+                            <Link to="/" className="w-full flex justify-center">
                                 <Button
                                     size="lg"
                                     className="bg-green-600 hover:bg-green-700 text-white font-bold transition-all"
@@ -200,35 +192,31 @@ export default function Cart() {
                             </Link>
                         </div>
                     ) : (
-                        // Cart Content Grid: Use order-1/order-2 to swap content on mobile
+                        // Cart Content
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-                            {/* Summary Column (Order 1 on mobile, Order 2 on desktop) */}
+                            {/* Summary Column */}
                             <div className="lg:col-span-4 order-1 lg:order-2">
                                 <BasketSummary />
                             </div>
 
-                            {/* Product List Column (Order 2 on mobile, Order 1 on desktop) */}
+                            {/* Product List Column */}
                             <div className="lg:col-span-8 order-2 lg:order-1 space-y-4">
-                                <div className="lg:col-span-8 order-2 lg:order-1 space-y-4">
+                                <div className="space-y-4">
                                     {cartItems.map((item) => {
-                                        // 1. Determine if the requested item quantity is available
                                         const itemStockData = products.find(
                                             (prod) =>
                                                 prod.id === item.product.id
                                         );
 
-                                        // Check availability against the product stock data
                                         const isAvailable =
                                             itemStockData &&
                                             itemStockData.inStock &&
                                             itemStockData.quantity >=
                                                 item.quantity;
 
-                                        // Get the available stock quantity for display
                                         const availableStock =
                                             itemStockData?.quantity || 0;
 
-                                        // 2. Define dynamic classes based on availability
                                         const itemClass = isAvailable
                                             ? `bg-white p-2 sm:p-2 rounded-xl shadow-md border border-gray-100 flex items-center gap-4 transition-shadow hover:shadow-lg`
                                             : `bg-red-50 p-2 sm:p-2 rounded-xl shadow-md border-2 border-red-300 flex items-center gap-4 transition-shadow hover:shadow-lg opacity-85`;
@@ -236,10 +224,9 @@ export default function Cart() {
                                         return (
                                             <div
                                                 key={item.product?.id}
-                                                className={itemClass} // Apply the dynamic class here
+                                                className={itemClass}
                                             >
                                                 <div className="flex-1 min-w-0 flex items-center gap-4">
-                                                    {/* Product Image */}
                                                     <Link
                                                         to={`/products/${item.product?.id}`}
                                                         className="shrink-0"
@@ -257,7 +244,6 @@ export default function Cart() {
                                                         />
                                                     </Link>
 
-                                                    {/* Product Details & Warning */}
                                                     <div className="flex-1 min-w-0">
                                                         <Link
                                                             to={`/products/${item.product?.id}`}
@@ -277,11 +263,10 @@ export default function Cart() {
                                                             | Price per unit:
                                                             KES{" "}
                                                             {item.product?.price.toFixed(
-                                                                2
+                                                                0
                                                             )}
                                                         </p>
 
-                                                        {/* 3. Display Warning if Not Available */}
                                                         {!isAvailable && (
                                                             <p className="text-xs sm:text-sm font-medium text-red-600 mt-1 p-1 bg-red-100 rounded-md inline-block">
                                                                 Only{" "}
@@ -293,13 +278,12 @@ export default function Cart() {
                                                                 }{" "}
                                                                 available.
                                                                 Please reduce
-                                                                your quantity.
+                                                                quantity.
                                                             </p>
                                                         )}
                                                     </div>
                                                 </div>
 
-                                                {/* Quantity Controls */}
                                                 <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden shrink-0 h-10">
                                                     <button
                                                         onClick={() =>
@@ -331,17 +315,11 @@ export default function Cart() {
                                                             )
                                                         }
                                                         className="px-3 h-full hover:bg-gray-100 text-gray-700 transition-colors border-l border-gray-300 disabled:opacity-50"
-                                                        // Disable if requested quantity is equal to or exceeds available stock
-                                                        // disabled={
-                                                        //     item.quantity >=
-                                                        //     availableStock
-                                                        // }
                                                     >
                                                         +
                                                     </button>
                                                 </div>
 
-                                                {/* Price & Remove Button */}
                                                 <div className="text-right flex items-center gap-3 shrink-0">
                                                     <p className="font-bold text-lg text-green-700 min-w-[6rem] hidden sm:block">
                                                         KES{" "}
@@ -349,7 +327,7 @@ export default function Cart() {
                                                             item.product
                                                                 ?.price *
                                                             item?.quantity
-                                                        ).toFixed(2)}
+                                                        ).toFixed(0)}
                                                     </p>
                                                     <Button
                                                         variant="ghost"
@@ -363,16 +341,16 @@ export default function Cart() {
                                                         }}
                                                         title="Remove item"
                                                     >
-                                                        <div>
+                                                        <span>
                                                             <Trash className="w-5 h-5" />
-                                                        </div>
+                                                        </span>
                                                     </Button>
                                                 </div>
                                             </div>
                                         );
                                     })}
                                 </div>
-                                {/* --- CTA: Explore More Products (Above Checkout) --- */}
+
                                 <div className="pt-6">
                                     <Link to="/">
                                         <Button
