@@ -96,7 +96,7 @@ export const CheckoutModal = ({ isOpen, onClose, cartTotal, cartItems }) => {
             setDistance(mockDistance);
             setDeliveryFee(calculatedFee);
             setCalculatingFee(false);
-        }, 1500);
+        }, 800);
     };
 
     const handleInputChange = (e) => {
@@ -273,7 +273,7 @@ export const CheckoutModal = ({ isOpen, onClose, cartTotal, cartItems }) => {
 
                     {/* --- STEP 2: PAYMENT & REVIEW --- */}
                     {step === 2 && (
-                        <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
+                        <div className="space-y-4 animate-in slide-in-from-right-4 duration-300">
                             {/* Order Summary Card */}
                             <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
                                 <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">
@@ -301,11 +301,14 @@ export const CheckoutModal = ({ isOpen, onClose, cartTotal, cartItems }) => {
                             </div>
 
                             {/* Payment Method */}
-                            <div className="space-y-3">
+                            <div className="space-y-2">
                                 <h3 className="font-semibold text-gray-900 flex items-center gap-2">
                                     <Banknote className="w-5 h-5 text-green-600" />{" "}
                                     Payment Method
                                 </h3>
+                                <div className="text-xs text-gray-500 mb-2">
+                                    Free Mpesa transaction
+                                </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     {["delivery", "prepay"].map((method) => (
                                         <label
@@ -336,8 +339,8 @@ export const CheckoutModal = ({ isOpen, onClose, cartTotal, cartItems }) => {
                                                 </span>
                                                 <span className="text-xs text-gray-500">
                                                     {method === "delivery"
-                                                        ? "Cash/M-Pesa on arrival"
-                                                        : "Secure Card/M-Pesa prompt"}
+                                                        ? "M-Pesa on arrival"
+                                                        : "M-Pesa prompt"}
                                                 </span>
                                             </div>
                                             {method === "delivery" ? (
