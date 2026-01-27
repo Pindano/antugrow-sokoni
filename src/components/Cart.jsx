@@ -61,6 +61,7 @@ export default function Cart() {
         decreaseQuantity,
         products,
         loadingProducts,
+        setQuantity,
     } = useProductContext();
 
     const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -74,7 +75,7 @@ export default function Cart() {
     // Note: Shipping is now calculated in the modal dynamically
     const subtotal = cartItems.reduce(
         (acc, item) => acc + item.product?.price * item?.quantity,
-        0
+        0,
     );
     const itemsCount = cartItems?.length ?? 0;
 
@@ -82,7 +83,7 @@ export default function Cart() {
         // 1. Determine which cart items are currently available
         const availableItems = cartItems.filter((item) => {
             const itemStockData = products.find(
-                (prod) => prod.id === item.product.id
+                (prod) => prod.id === item.product.id,
             );
             return (
                 itemStockData &&
@@ -93,7 +94,7 @@ export default function Cart() {
 
         const availableSubtotal = availableItems.reduce(
             (acc, item) => acc + item.product.price * item.quantity,
-            0
+            0,
         );
         const availableCount = availableItems.length;
 
@@ -105,8 +106,8 @@ export default function Cart() {
         const checkoutMessage = isBasketEmpty
             ? "Basket is Empty"
             : hasUnavailableItems
-            ? "Unavailable Items Found"
-            : "Checkout";
+              ? "Unavailable Items Found"
+              : "Checkout";
 
         return (
             <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 lg:sticky lg:top-20">
@@ -168,7 +169,7 @@ export default function Cart() {
             ) : (
                 <div className="max-w-7xl mx-auto px-4 py-16 sm:py-20">
                     <h1 className="text-4xl font-extrabold mb-2 text-gray-900 tracking-tight">
-                        Your Garden Basket
+                        Your Basket
                     </h1>
                     <p className="text-md text-gray-600 mb-8">
                         Your basket has {itemsCount} items
@@ -205,7 +206,7 @@ export default function Cart() {
                                     {cartItems.map((item) => {
                                         const itemStockData = products.find(
                                             (prod) =>
-                                                prod.id === item.product.id
+                                                prod.id === item.product.id,
                                         );
 
                                         const isAvailable =
@@ -263,7 +264,7 @@ export default function Cart() {
                                                             | Price per unit:
                                                             KES{" "}
                                                             {item.product?.price.toFixed(
-                                                                0
+                                                                0,
                                                             )}
                                                         </p>
 
@@ -288,7 +289,8 @@ export default function Cart() {
                                                     <button
                                                         onClick={() =>
                                                             decreaseQuantity(
-                                                                item.product?.id
+                                                                item.product
+                                                                    ?.id,
                                                             )
                                                         }
                                                         className="px-3 h-full hover:bg-gray-100 text-gray-700 transition-colors border-r border-gray-300 disabled:opacity-50"
@@ -299,19 +301,51 @@ export default function Cart() {
                                                     >
                                                         -
                                                     </button>
-                                                    <span className="px-4 font-medium text-gray-900 min-w-[4rem] text-center text-sm">
-                                                        {item?.quantity}{" "}
-                                                        <span className="text-xs text-gray-500 hidden sm:inline">
-                                                            {
-                                                                item?.product
-                                                                    ?.unit
-                                                            }
-                                                        </span>
+
+                                                    <input
+                                                        type="number"
+                                                        inputMode="numeric"
+                                                        // min={MIN_QTY}
+                                                        max={availableStock}
+                                                        value={item.quantity}
+                                                        onChange={(e) =>
+                                                            setQuantity(
+                                                                item.product.id,
+                                                                e.target.value,
+                                                            )
+                                                        }
+                                                        // onBlur={(e) => {
+                                                        //     if (
+                                                        //         !e.target.value
+                                                        //     ) {
+                                                        //         setQuantity(
+                                                        //             item.product
+                                                        //                 .id,
+                                                        //             MIN_QTY,
+                                                        //         );
+                                                        //     }
+                                                        // }}
+                                                        className="
+                                                                    w-20
+                                                                    text-center
+                                                                    text-sm
+                                                                    font-medium
+                                                                    text-gray-900
+                                                                    outline-none
+                                                                    bg-white
+                                                                    focus:ring-1
+                                                                    focus:ring-green-500
+                                                                "
+                                                    />
+
+                                                    <span className="text-xs text-gray-500 hidden sm:inline  pr-4">
+                                                        {item?.product?.unit}
                                                     </span>
                                                     <button
                                                         onClick={() =>
                                                             increaseQuantity(
-                                                                item.product?.id
+                                                                item.product
+                                                                    ?.id,
                                                             )
                                                         }
                                                         className="px-3 h-full hover:bg-gray-100 text-gray-700 transition-colors border-l border-gray-300 disabled:opacity-50"
@@ -336,7 +370,8 @@ export default function Cart() {
                                                         onClick={(e) => {
                                                             e.preventDefault();
                                                             handleRemoveItem(
-                                                                item.product?.id
+                                                                item.product
+                                                                    ?.id,
                                                             );
                                                         }}
                                                         title="Remove item"

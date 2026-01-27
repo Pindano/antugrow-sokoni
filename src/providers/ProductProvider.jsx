@@ -5,7 +5,7 @@ import toast from "react-hot-toast";
 const productContext = createContext();
 
 const CART_STORAGE_KEY = "cartItems";
-const MIN_QTY = 5;
+const MIN_QTY = 50;
 
 export const ProductProvider = ({ children }) => {
     // You can add state and functions related to products here
@@ -47,7 +47,7 @@ export const ProductProvider = ({ children }) => {
         setCartItems((prevCart) => {
             // 1. Check if the product already exists in the cart (for logic integrity)
             const existingItem = prevCart.find(
-                (item) => item.product.id === product.id
+                (item) => item.product.id === product.id,
             );
 
             if (existingItem) {
@@ -55,7 +55,7 @@ export const ProductProvider = ({ children }) => {
                     "Item already in basket. Updating quantity to the minimum.",
                     {
                         icon: "🧺",
-                    }
+                    },
                 );
                 return prevCart.map((item) =>
                     item.product.id === product.id
@@ -66,7 +66,7 @@ export const ProductProvider = ({ children }) => {
                                       ? MIN_QTY
                                       : item.quantity,
                           } // Adjust this logic as needed
-                        : item
+                        : item,
                 );
             }
 
@@ -76,7 +76,7 @@ export const ProductProvider = ({ children }) => {
                 quantity: MIN_QTY, // Initial order is 5 kgs
             };
             console.log(
-                `Added new product ${product.name} with ${MIN_QTY} kgs.`
+                `Added new product ${product.name} with ${MIN_QTY} kgs.`,
             );
 
             toast.success(`${product.name} added to your basket!`, {
@@ -104,7 +104,7 @@ export const ProductProvider = ({ children }) => {
                     if (item.quantity >= maxQuantity) {
                         toast.error(
                             `Only ${maxQuantity} ${item.product.unit}s are available in stock.`,
-                            { duration: 2000 }
+                            { duration: 2000 },
                         );
                         // Return the item unchanged, preventing the increase
                         return item;
@@ -114,7 +114,7 @@ export const ProductProvider = ({ children }) => {
                     return { ...item, quantity: item.quantity + 1 };
                 }
                 return item;
-            })
+            }),
         );
     };
 
@@ -127,14 +127,49 @@ export const ProductProvider = ({ children }) => {
                     return { ...item, quantity: newQuantity };
                 }
                 return item;
-            })
+            }),
+        );
+    };
+
+    const setQuantity = (productId, value) => {
+        const productData = products.find((p) => p.id === productId);
+
+        if (!productData) {
+            console.error(`Product with ID ${productId} not found.`);
+            return;
+        }
+
+        const maxQuantity = productData.quantity;
+        let newQuantity = Number(value);
+
+        // Guard rails
+        if (Number.isNaN(newQuantity)) return;
+
+        if (newQuantity < MIN_QTY) {
+            newQuantity = MIN_QTY;
+        }
+
+        if (newQuantity > maxQuantity) {
+            toast.error(
+                `Only ${maxQuantity} ${productData.unit}s are available in stock.`,
+                { duration: 2000 },
+            );
+            newQuantity = maxQuantity;
+        }
+
+        setCartItems((prevCart) =>
+            prevCart.map((item) =>
+                item.product.id === productId
+                    ? { ...item, quantity: newQuantity }
+                    : item,
+            ),
         );
     };
 
     const removeProductFromCart = (productId) => {
         console.log(`Removing product with ID: ${productId} from cart.`);
         setCartItems((prevCart) =>
-            prevCart.filter((item) => item.product.id !== productId)
+            prevCart.filter((item) => item.product.id !== productId),
         );
         toast.success(`Item discarded from your basket.`, { duration: 3000 });
     };
@@ -170,6 +205,7 @@ export const ProductProvider = ({ children }) => {
         removeProductFromCart,
         increaseQuantity,
         decreaseQuantity,
+        setQuantity,
     };
 
     return (
