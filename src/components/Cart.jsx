@@ -112,14 +112,17 @@ export default function Cart() {
         return (
             <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 lg:sticky lg:top-20">
                 <h2 className="text-xl font-bold mb-5 text-gray-900 border-b pb-3">
-                    Harvest Summary
+                    Basket Summary
                 </h2>
 
                 <div className="space-y-3 pb-4 mb-4">
                     <div className="flex justify-between text-gray-700 text-sm">
                         <span>Produce Value ({availableCount} items)</span>
                         <span className="font-medium">
-                            KES {availableSubtotal.toFixed(0)}
+                            KES{" "}
+                            {Number(
+                                availableSubtotal.toFixed(0),
+                            ).toLocaleString()}
                         </span>
                     </div>
                     <div className="flex justify-between text-gray-500 text-xs italic">
@@ -133,14 +136,19 @@ export default function Cart() {
                         Subtotal
                     </span>
                     <span className="text-2xl font-extrabold text-green-700">
-                        KES {availableSubtotal.toFixed(0)}
+                        KES{" "}
+                        {Number(availableSubtotal.toFixed(0)).toLocaleString()}
                     </span>
                 </div>
 
                 <Button
                     className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 text-lg rounded-xl transition duration-200 shadow-lg disabled:bg-gray-400 disabled:shadow-none disabled:cursor-not-allowed"
                     disabled={!canCheckout}
-                    onClick={() => setIsCheckoutOpen(true)}
+                    onClick={() => {
+                        // Check and show error messages
+
+                        setIsCheckoutOpen(true);
+                    }}
                 >
                     {checkoutMessage}
                 </Button>
@@ -314,17 +322,6 @@ export default function Cart() {
                                                                 e.target.value,
                                                             )
                                                         }
-                                                        // onBlur={(e) => {
-                                                        //     if (
-                                                        //         !e.target.value
-                                                        //     ) {
-                                                        //         setQuantity(
-                                                        //             item.product
-                                                        //                 .id,
-                                                        //             MIN_QTY,
-                                                        //         );
-                                                        //     }
-                                                        // }}
                                                         className="
                                                                     w-20
                                                                     text-center
@@ -357,11 +354,13 @@ export default function Cart() {
                                                 <div className="text-right flex items-center gap-3 shrink-0">
                                                     <p className="font-bold text-lg text-green-700 min-w-[6rem] hidden sm:block">
                                                         KES{" "}
-                                                        {(
-                                                            item.product
-                                                                ?.price *
-                                                            item?.quantity
-                                                        ).toFixed(0)}
+                                                        {Number(
+                                                            (
+                                                                item.product
+                                                                    ?.price *
+                                                                item?.quantity
+                                                            ).toFixed(0),
+                                                        ).toLocaleString()}
                                                     </p>
                                                     <Button
                                                         variant="ghost"
@@ -386,7 +385,7 @@ export default function Cart() {
                                     })}
                                 </div>
 
-                                <div className="pt-6">
+                                <div className="w-fit">
                                     <Link to="/">
                                         <Button
                                             variant="outline"

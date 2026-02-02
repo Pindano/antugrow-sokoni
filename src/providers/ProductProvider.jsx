@@ -143,11 +143,13 @@ export const ProductProvider = ({ children }) => {
         let newQuantity = Number(value);
 
         // Guard rails
-        if (Number.isNaN(newQuantity)) return;
-
-        if (newQuantity < MIN_QTY) {
+        if (Number.isNaN(newQuantity) || newQuantity === 0) {
             newQuantity = MIN_QTY;
         }
+
+        // if (newQuantity < MIN_QTY) {
+        //     newQuantity = MIN_QTY;
+        // }
 
         if (newQuantity > maxQuantity) {
             toast.error(

@@ -25,17 +25,21 @@ import { ShieldCheck } from "lucide-react";
 import { Star, Truck } from "lucide-react";
 import { useProductContext } from "../providers/ProductProvider";
 export default function ProductPage() {
-    const { cartItems, addProductToCart, removeProductFromCart, MIN_QTY } =
-        useProductContext();
+    const {
+        cartItems,
+        addProductToCart,
+        removeProductFromCart,
+        MIN_QTY,
+        setQuantity,
+    } = useProductContext();
     const { productId } = useParams();
     const navigate = useNavigate();
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [quantity, setQuantity] = useState(
+    const quantity =
         cartItems?.find((item) => item?.product?.id === productId)?.quantity ||
-            MIN_QTY
-    );
+        MIN_QTY;
     const [selectedImage, setSelectedImage] = useState(0);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [orderForm, setOrderForm] = useState({
@@ -44,7 +48,9 @@ export default function ProductPage() {
         notes: "",
     });
     useEffect(() => {
-        fetchProduct();
+        if (!product) {
+            fetchProduct();
+        }
     }, [productId]);
 
     const fetchProduct = async () => {
@@ -66,48 +72,41 @@ export default function ProductPage() {
         }
     };
 
-    const handleQuantityChange = (newQuantity) => {
-        if (
-            newQuantity >= MIN_QTY &&
-            newQuantity <= (product?.quantity || MIN_QTY)
-        ) {
-            setQuantity(newQuantity);
-        }
-    };
+    //     const handleFormChange = (field, value) => {
+    //         setOrderForm((prev) => ({ ...prev, [field]: value }));
+    //     };
 
-    const handleFormChange = (field, value) => {
-        setOrderForm((prev) => ({ ...prev, [field]: value }));
-    };
+    //     const handleSubmit = (e) => {
+    //         e.preventDefault();
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
+    //         const total = quantity * product.price;
+    //         const message = `New ${product.name} Order:
+    // Name: ${orderForm.fullName}
+    // Phone: ${orderForm.phone}
+    // Product: ${product.name}
+    // Quantity: ${quantity} ${product.unit}
+    // Unit Price: KSh ${product.price}
+    // Total: KSh ${total.toLocaleString()}
+    // Delivery Location: ${orderForm.notes}
+    // Payment: Cash/M-Pesa on delivery`;
 
-        const total = quantity * product.price;
-        const message = `New ${product.name} Order:
-Name: ${orderForm.fullName}
-Phone: ${orderForm.phone}
-Product: ${product.name}
-Quantity: ${quantity} ${product.unit}
-Unit Price: KSh ${product.price}
-Total: KSh ${total.toLocaleString()}
-Delivery Location: ${orderForm.notes}
-Payment: Cash/M-Pesa on delivery`;
+    //         const whatsappUrl = `https://wa.me/254113675687?text=${encodeURIComponent(
+    //             message,
+    //         )}`;
+    //         window.open(whatsappUrl, "_blank");
+    //     };
 
-        const whatsappUrl = `https://wa.me/254113675687?text=${encodeURIComponent(
-            message
-        )}`;
-        window.open(whatsappUrl, "_blank");
-    };
-
-    const scrollToOrder = () => {
-        document
-            .getElementById("order-section")
-            ?.scrollIntoView({ behavior: "smooth" });
-    };
+    //     const scrollToOrder = () => {
+    //         document
+    //             .getElementById("order-section")
+    //             ?.scrollIntoView({ behavior: "smooth" });
+    //     };
 
     const cartItem = cartItems?.find(
-        (item) => item?.product?.id === product?.id
+        (item) => item?.product?.id === product?.id,
     );
+
+    const total = quantity * product.price;
 
     // Loading state
     if (loading) {
@@ -197,8 +196,6 @@ Payment: Cash/M-Pesa on delivery`;
         );
     }
 
-    const total = quantity * product.price;
-
     return (
         <div className="min-h-screen bg-[#FDFCF8] text-slate-800 font-sans">
             <Navigation showBackButton={true} />
@@ -231,7 +228,7 @@ Payment: Cash/M-Pesa on delivery`;
                                                     >
                                                         {badge}
                                                     </Badge>
-                                                )
+                                                ),
                                             )}
                                         </div>
                                         <h1 className="text-2xl font-bold text-slate-900 leading-tight">
@@ -284,8 +281,9 @@ Payment: Cash/M-Pesa on delivery`;
                                                         variant="outline"
                                                         size="icon"
                                                         onClick={() =>
-                                                            handleQuantityChange(
-                                                                quantity - 1
+                                                            setQuantity(
+                                                                product.id,
+                                                                quantity - 1,
                                                             )
                                                         }
                                                         disabled={
@@ -301,15 +299,15 @@ Payment: Cash/M-Pesa on delivery`;
                                                             type="number"
                                                             value={quantity}
                                                             onChange={(e) =>
-                                                                handleQuantityChange(
+                                                                setQuantity(
+                                                                    product.id,
                                                                     Number.parseInt(
                                                                         e.target
-                                                                            .value
-                                                                    )
+                                                                            .value,
+                                                                    ),
                                                                 )
                                                             }
                                                             className="w-full text-center h-10 border-gray-200 focus-visible:ring-green-500"
-                                                            min={MIN_QTY}
                                                             max={
                                                                 product.quantity
                                                             }
@@ -323,8 +321,9 @@ Payment: Cash/M-Pesa on delivery`;
                                                         variant="outline"
                                                         size="icon"
                                                         onClick={() =>
-                                                            handleQuantityChange(
-                                                                quantity + 1
+                                                            setQuantity(
+                                                                product.id,
+                                                                quantity + 1,
                                                             )
                                                         }
                                                         disabled={
@@ -400,7 +399,7 @@ Payment: Cash/M-Pesa on delivery`;
                                                         e.stopPropagation();
                                                         // Action: Remove Item
                                                         removeProductFromCart(
-                                                            product.id
+                                                            product.id,
                                                         );
                                                     }}
                                                     title="Remove item completely"
@@ -428,7 +427,7 @@ Payment: Cash/M-Pesa on delivery`;
                                             onClick={() =>
                                                 window.open(
                                                     `https://wa.me/254113675687?text=Hi! I'm interested in ordering ${product.name}`,
-                                                    "_blank"
+                                                    "_blank",
                                                 )
                                             }
                                             className="w-full h-10 border-green-200 text-green-700 hover:bg-green-50 hover:text-green-800"
@@ -677,7 +676,7 @@ Payment: Cash/M-Pesa on delivery`;
                                                                 {product.fertilizers.map(
                                                                     (
                                                                         item,
-                                                                        idx
+                                                                        idx,
                                                                     ) => (
                                                                         <Badge
                                                                             key={
@@ -690,7 +689,7 @@ Payment: Cash/M-Pesa on delivery`;
                                                                                 item
                                                                             }
                                                                         </Badge>
-                                                                    )
+                                                                    ),
                                                                 )}
                                                             </div>
                                                         </div>
