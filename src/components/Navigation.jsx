@@ -167,10 +167,10 @@ export function Navigation({
                                             <Package className="mr-2 h-4 w-4" />
                                             <span>My Orders</span>
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem>
+                                        {/* <DropdownMenuItem>
                                             <Settings className="mr-2 h-4 w-4" />
                                             <span>Settings</span>
-                                        </DropdownMenuItem>
+                                        </DropdownMenuItem> */}
                                     </DropdownMenuGroup>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem className="text-red-600 focus:text-red-600">

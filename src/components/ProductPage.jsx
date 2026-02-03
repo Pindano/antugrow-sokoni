@@ -66,7 +66,7 @@ export default function ProductPage() {
             setProduct(data);
         } catch (err) {
             console.error("Error loading product:", err);
-            setError("Failed to load product. Please try again.");
+            setError("Failed to load product?. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -79,13 +79,13 @@ export default function ProductPage() {
     //     const handleSubmit = (e) => {
     //         e.preventDefault();
 
-    //         const total = quantity * product.price;
-    //         const message = `New ${product.name} Order:
+    //         const total = quantity * product?.price;
+    //         const message = `New ${product?.name} Order:
     // Name: ${orderForm.fullName}
     // Phone: ${orderForm.phone}
-    // Product: ${product.name}
-    // Quantity: ${quantity} ${product.unit}
-    // Unit Price: KSh ${product.price}
+    // Product: ${product?.name}
+    // Quantity: ${quantity} ${product?.unit}
+    // Unit Price: KSh ${product?.price}
     // Total: KSh ${total.toLocaleString()}
     // Delivery Location: ${orderForm.notes}
     // Payment: Cash/M-Pesa on delivery`;
@@ -106,7 +106,7 @@ export default function ProductPage() {
         (item) => item?.product?.id === product?.id,
     );
 
-    const total = quantity * product.price;
+    const total = quantity * product?.price;
 
     // Loading state
     if (loading) {
@@ -210,7 +210,7 @@ export default function ProductPage() {
                                 <div className="flex justify-between items-start mb-4">
                                     <div>
                                         <div className="flex items-center gap-2 mb-2">
-                                            {product.inStock ? (
+                                            {product?.inStock ? (
                                                 <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100 border-none px-2 py-0.5 text-[10px] uppercase tracking-wide">
                                                     In Stock
                                                 </Badge>
@@ -219,7 +219,7 @@ export default function ProductPage() {
                                                     Out of Stock
                                                 </Badge>
                                             )}
-                                            {product.badges?.map(
+                                            {product?.badges?.map(
                                                 (badge, idx) => (
                                                     <Badge
                                                         key={idx}
@@ -232,7 +232,7 @@ export default function ProductPage() {
                                             )}
                                         </div>
                                         <h1 className="text-2xl font-bold text-slate-900 leading-tight">
-                                            {product.name}
+                                            {product?.name}
                                         </h1>
                                         <div className="flex items-center gap-1 mt-2">
                                             <div className="flex text-yellow-400">
@@ -250,12 +250,12 @@ export default function ProductPage() {
                                     </div>
                                 </div>
 
-                                <div className="flex items-baseline gap-2 mb-6">
+                                <div className="flex items-baseline gap-1 mb-6">
                                     <span className="text-2xl font-bold text-green-700">
-                                        KSh {product.price.toLocaleString()}
+                                        KSh {product?.price.toLocaleString()}
                                     </span>
                                     <span className="text-gray-500 font-medium">
-                                        / {product.unit}
+                                        / {product?.unit}
                                     </span>
                                 </div>
 
@@ -271,8 +271,9 @@ export default function ProductPage() {
                                                         Quantity needed
                                                     </Label>
                                                     <span className="text-xs text-green-600 font-medium">
-                                                        {product.quantity}{" "}
-                                                        {product.unit} available
+                                                        {product?.quantity}{" "}
+                                                        {product?.unit}{" "}
+                                                        available
                                                     </span>
                                                 </div>
 
@@ -282,7 +283,7 @@ export default function ProductPage() {
                                                         size="icon"
                                                         onClick={() =>
                                                             setQuantity(
-                                                                product.id,
+                                                                product?.id,
                                                                 quantity - 1,
                                                             )
                                                         }
@@ -300,7 +301,7 @@ export default function ProductPage() {
                                                             value={quantity}
                                                             onChange={(e) =>
                                                                 setQuantity(
-                                                                    product.id,
+                                                                    product?.id,
                                                                     Number.parseInt(
                                                                         e.target
                                                                             .value,
@@ -309,11 +310,11 @@ export default function ProductPage() {
                                                             }
                                                             className="w-full text-center h-10 border-gray-200 focus-visible:ring-green-500"
                                                             max={
-                                                                product.quantity
+                                                                product?.quantity
                                                             }
                                                         />
                                                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">
-                                                            {product.unit}s
+                                                            {product?.unit}s
                                                         </span>
                                                     </div>
 
@@ -322,13 +323,13 @@ export default function ProductPage() {
                                                         size="icon"
                                                         onClick={() =>
                                                             setQuantity(
-                                                                product.id,
+                                                                product?.id,
                                                                 quantity + 1,
                                                             )
                                                         }
                                                         disabled={
                                                             quantity >=
-                                                            product.quantity
+                                                            product?.quantity
                                                         }
                                                         className="h-10 w-10 bg-white shadow-sm border-gray-200"
                                                     >
@@ -370,7 +371,7 @@ export default function ProductPage() {
                                                     e.stopPropagation();
                                                     // Action: Remove Item
                                                     removeProductFromCart(
-                                                        product.id
+                                                        product?.id
                                                     );
                                                 }}
                                                 title="Remove item completely"
@@ -385,10 +386,10 @@ export default function ProductPage() {
                                                         navigate("/cart");
                                                     }}
                                                     className="cursor-pointer flex-1 bg-green-600 hover:bg-green-700 text-white h-10 text-base shadow-lg shadow-green-200"
-                                                    disabled={!product.inStock}
+                                                    disabled={!product?.inStock}
                                                 >
                                                     <ShoppingCart className="w-5 h-5 mr-2" />
-                                                    {product.inStock
+                                                    {product?.inStock
                                                         ? "Proceed to Checkout"
                                                         : "Out of Stock"}
                                                 </Button>
@@ -399,7 +400,7 @@ export default function ProductPage() {
                                                         e.stopPropagation();
                                                         // Action: Remove Item
                                                         removeProductFromCart(
-                                                            product.id,
+                                                            product?.id,
                                                         );
                                                     }}
                                                     title="Remove item completely"
@@ -413,10 +414,10 @@ export default function ProductPage() {
                                                     addProductToCart(product);
                                                 }}
                                                 className="w-full bg-green-600 hover:bg-green-700 text-white h-10 text-base shadow-lg shadow-green-200"
-                                                disabled={!product.inStock}
+                                                disabled={!product?.inStock}
                                             >
                                                 <ShoppingCart className="w-5 h-5 mr-2" />
-                                                {product.inStock
+                                                {product?.inStock
                                                     ? "Add to Basket"
                                                     : "Out of Stock"}
                                             </Button>
@@ -426,7 +427,7 @@ export default function ProductPage() {
                                             variant="outline"
                                             onClick={() =>
                                                 window.open(
-                                                    `https://wa.me/254113675687?text=Hi! I'm interested in ordering ${product.name}`,
+                                                    `https://wa.me/254113675687?text=Hi! I'm interested in ordering ${product?.name}`,
                                                     "_blank",
                                                 )
                                             }
@@ -485,10 +486,10 @@ export default function ProductPage() {
                             >
                                 <img
                                     src={
-                                        product.images?.[selectedImage] ||
+                                        product?.images?.[selectedImage] ||
                                         "/placeholder.svg"
                                     }
-                                    alt={product.name}
+                                    alt={product?.name}
                                     className="w-full h-full object-cover cursor-zoom-in transition-transform duration-500 group-hover:scale-105"
                                 />
                                 <div className="absolute bottom-4 right-4 bg-black/50 text-white text-xs px-3 py-1 rounded-full backdrop-blur-sm">
@@ -496,9 +497,9 @@ export default function ProductPage() {
                                 </div>
                             </div>
 
-                            {product.images?.length > 1 && (
+                            {product?.images?.length > 1 && (
                                 <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-                                    {product.images.map((image, index) => (
+                                    {product?.images.map((image, index) => (
                                         <button
                                             key={index}
                                             onClick={() =>
@@ -553,7 +554,7 @@ export default function ProductPage() {
                                                 Description
                                             </h3>
                                             <p className="text-slate-600 leading-relaxed">
-                                                {product.description}
+                                                {product?.description}
                                             </p>
                                         </div>
 
@@ -563,7 +564,7 @@ export default function ProductPage() {
                                                     Category
                                                 </span>
                                                 <p className="font-medium text-slate-700">
-                                                    {product.category}
+                                                    {product?.category}
                                                 </p>
                                             </div>
                                             <div className="space-y-1">
@@ -571,7 +572,7 @@ export default function ProductPage() {
                                                     Harvest Unit
                                                 </span>
                                                 <p className="font-medium text-slate-700">
-                                                    {product.unit}
+                                                    {product?.unit}
                                                 </p>
                                             </div>
                                             <div className="space-y-1">
@@ -579,7 +580,7 @@ export default function ProductPage() {
                                                     Location
                                                 </span>
                                                 <p className="font-medium text-slate-700">
-                                                    {product.location}
+                                                    {product?.location}
                                                 </p>
                                             </div>
                                             <div className="space-y-1">
@@ -587,7 +588,7 @@ export default function ProductPage() {
                                                     Availability
                                                 </span>
                                                 <p className="font-medium text-green-600">
-                                                    {product.quantity} left
+                                                    {product?.quantity} left
                                                 </p>
                                             </div>
                                         </div>
@@ -610,7 +611,7 @@ export default function ProductPage() {
                                                         </dt>
                                                         <dd className="font-medium">
                                                             {
-                                                                product.farmer_name
+                                                                product?.farmer_name
                                                             }
                                                         </dd>
                                                     </div>
@@ -620,21 +621,21 @@ export default function ProductPage() {
                                                         </dt>
                                                         <dd className="font-medium">
                                                             {
-                                                                product.farm_location
+                                                                product?.farm_location
                                                             }
                                                         </dd>
                                                     </div>
-                                                    {product.farm_size && (
+                                                    {product?.farm_size && (
                                                         <div className="flex justify-between py-2 border-b border-stone-100">
                                                             <dt className="text-gray-500">
                                                                 Scale
                                                             </dt>
                                                             <dd className="font-medium">
                                                                 {
-                                                                    product.farm_size
+                                                                    product?.farm_size
                                                                 }{" "}
                                                                 {
-                                                                    product.farm_size_unit
+                                                                    product?.farm_size_unit
                                                                 }
                                                             </dd>
                                                         </div>
@@ -648,32 +649,32 @@ export default function ProductPage() {
                                                     Practices
                                                 </h4>
                                                 <div className="space-y-4">
-                                                    {(product.irrigation_method ||
-                                                        product.water_source) && (
+                                                    {(product?.irrigation_method ||
+                                                        product?.water_source) && (
                                                         <div className="bg-stone-50 p-3 rounded-lg text-sm">
                                                             <span className="block text-xs text-gray-500 mb-1">
                                                                 Water Management
                                                             </span>
                                                             <div className="font-medium text-slate-700">
                                                                 {
-                                                                    product.irrigation_method
+                                                                    product?.irrigation_method
                                                                 }{" "}
                                                                 using{" "}
                                                                 {
-                                                                    product.water_source
+                                                                    product?.water_source
                                                                 }
                                                             </div>
                                                         </div>
                                                     )}
 
-                                                    {product.fertilizers
+                                                    {product?.fertilizers
                                                         ?.length > 0 && (
                                                         <div>
                                                             <span className="text-xs text-gray-500 mb-2 block">
                                                                 Fertilizers Used
                                                             </span>
                                                             <div className="flex flex-wrap gap-2">
-                                                                {product.fertilizers.map(
+                                                                {product?.fertilizers.map(
                                                                     (
                                                                         item,
                                                                         idx,
@@ -714,10 +715,10 @@ export default function ProductPage() {
                     <div className="relative max-w-5xl w-full max-h-[90vh]">
                         <img
                             src={
-                                product.images?.[selectedImage] ||
+                                product?.images?.[selectedImage] ||
                                 "/placeholder.svg"
                             }
-                            alt={product.name}
+                            alt={product?.name}
                             className="w-full h-full object-contain rounded-lg shadow-2xl"
                         />
                         <button

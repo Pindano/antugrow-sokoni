@@ -173,7 +173,7 @@ export const ProductProvider = ({ children }) => {
         setCartItems((prevCart) =>
             prevCart.filter((item) => item.product.id !== productId),
         );
-        toast.success(`Item discarded from your basket.`, { duration: 3000 });
+        toast.success(`Item removed from your basket.`, { duration: 3000 });
     };
 
     const sendReminderEmail = (productId) => {

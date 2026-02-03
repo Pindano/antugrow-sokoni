@@ -118,7 +118,7 @@ export default function ListProductForm() {
 
     const removeInsecticide = (insecticideToRemove) => {
         setInsecticides((prev) =>
-            prev.filter((i) => i !== insecticideToRemove)
+            prev.filter((i) => i !== insecticideToRemove),
         );
     };
 
@@ -171,6 +171,7 @@ export default function ListProductForm() {
         try {
             // Validate required fields - All fields are required except description, badges, and contact email
             const requiredFieldsMap = {
+                // Product details
                 name: "Product Name",
                 category: "Category",
                 shortDescription: "Short Description",
@@ -178,22 +179,26 @@ export default function ListProductForm() {
                 quantity: "Quantity",
                 unit: "Unit",
                 location: "Product Location",
-                farmerName: "Farmer Name",
-                farmLocation: "Farm Location",
-                farmSize: "Farm Size",
-                farmSizeUnit: "Farm Size Unit",
-                irrigationMethod: "Irrigation Method",
-                waterSource: "Water Source",
-                contactPhone: "Contact Phone",
-                images: "Product Images",
+
+                // Farmer details
+                // farmerName: "Farmer Name",
+                // farmLocation: "Farm Location",
+                // farmSize: "Farm Size",
+                // farmSizeUnit: "Farm Size Unit",
+                // irrigationMethod: "Irrigation Method",
+                // waterSource: "Water Source",
+
+                // Others
+                // contactPhone: "Contact Phone",
+                // images: "Product Images",
             };
 
             // Check required arrays (at least one item required)
             const requiredArrays = {
-                pests: "Pests & Diseases",
-                pesticides: "Pesticides Used",
-                insecticides: "Insecticides Used",
-                fertilizers: "Fertilizers Used",
+                // pests: "Pests & Diseases",
+                // pesticides: "Pesticides Used",
+                // insecticides: "Insecticides Used",
+                // fertilizers: "Fertilizers Used",
             };
 
             const missingFields = [];
@@ -223,8 +228,8 @@ export default function ListProductForm() {
             if (missingFields.length > 0) {
                 throw new Error(
                     `Please fill in all required fields: ${missingFields.join(
-                        ", "
-                    )}`
+                        ", ",
+                    )}`,
                 );
             }
 
@@ -246,7 +251,7 @@ export default function ListProductForm() {
                         throw new Error(
                             `Failed to upload image ${i + 1}: ${
                                 uploadError.message
-                            }`
+                            }`,
                         );
                     }
 
@@ -290,7 +295,7 @@ export default function ListProductForm() {
 
                 // Set expiry date to 30 days from now
                 expires_at: new Date(
-                    Date.now() + 30 * 24 * 60 * 60 * 1000
+                    Date.now() + 30 * 24 * 60 * 60 * 1000,
                 ).toISOString(),
             };
 
@@ -305,7 +310,7 @@ export default function ListProductForm() {
 
             setSubmitStatus("success");
             setSubmitMessage(
-                `Your product has been submitted successfully! We'll review it and get back to you soon.`
+                `Your product has been submitted successfully! We'll review it and get back to you soon.`,
             );
             resetForm();
             toast.success("Your product has been submited");
@@ -319,7 +324,7 @@ export default function ListProductForm() {
             setSubmitStatus("error");
             setSubmitMessage(
                 error.message ||
-                    "Failed to submit product listing. Please check your connection and try again."
+                    "Failed to submit product listing. Please check your connection and try again.",
             );
         } finally {
             setIsSubmitting(false);
@@ -380,7 +385,7 @@ export default function ListProductForm() {
                 )}
 
                 {/* Farmer Information Section */}
-                <Card className="bg-white shadow-lg mb-6">
+                {/* <Card className="bg-white shadow-lg mb-6">
                     <CardHeader>
                         <CardTitle className="text-2xl text-green-600">
                             Farmer Information
@@ -563,7 +568,7 @@ export default function ListProductForm() {
                             </div>
                         </div>
                     </CardContent>
-                </Card>
+                </Card> */}
 
                 {/* Product Information Section */}
                 <Card className="bg-white shadow-lg mb-6">
@@ -583,7 +588,7 @@ export default function ListProductForm() {
                                         onChange={(e) =>
                                             handleInputChange(
                                                 "name",
-                                                e.target.value
+                                                e.target.value,
                                             )
                                         }
                                         placeholder="e.g., Fresh Organic Tomatoes"
@@ -636,7 +641,7 @@ export default function ListProductForm() {
                                     onChange={(e) =>
                                         handleInputChange(
                                             "shortDescription",
-                                            e.target.value
+                                            e.target.value,
                                         )
                                     }
                                     placeholder="Brief description for product cards"
@@ -654,7 +659,7 @@ export default function ListProductForm() {
                                     onChange={(e) =>
                                         handleInputChange(
                                             "description",
-                                            e.target.value
+                                            e.target.value,
                                         )
                                     }
                                     placeholder="Detailed description of your product, growing methods, quality, etc."
@@ -674,7 +679,7 @@ export default function ListProductForm() {
                                         onChange={(e) =>
                                             handleInputChange(
                                                 "quantity",
-                                                e.target.value
+                                                e.target.value,
                                             )
                                         }
                                         placeholder="50"
@@ -691,7 +696,7 @@ export default function ListProductForm() {
                                         onChange={(e) =>
                                             handleInputChange(
                                                 "price",
-                                                e.target.value
+                                                e.target.value,
                                             )
                                         }
                                         placeholder="100"
@@ -744,7 +749,7 @@ export default function ListProductForm() {
                                     onChange={(e) =>
                                         handleInputChange(
                                             "location",
-                                            e.target.value
+                                            e.target.value,
                                         )
                                     }
                                     placeholder="e.g., Kangemi Market"
@@ -800,7 +805,7 @@ export default function ListProductForm() {
                 </Card>
 
                 {/* Farming Practices Section */}
-                <Card className="bg-white shadow-lg mb-6">
+                {/* <Card className="bg-white shadow-lg mb-6">
                     <CardHeader>
                         <CardTitle className="text-2xl text-green-600">
                             Farming Practices
@@ -974,7 +979,7 @@ export default function ListProductForm() {
                                                 type="button"
                                                 onClick={() =>
                                                     removeInsecticide(
-                                                        insecticide
+                                                        insecticide,
                                                     )
                                                 }
                                                 className="ml-1 hover:bg-gray-200 rounded-full p-0.5"
@@ -987,55 +992,17 @@ export default function ListProductForm() {
                             </div>
                         </div>
                     </CardContent>
-                </Card>
+                </Card> */}
 
                 {/* Contact & Images Section */}
                 <Card className="bg-white shadow-lg">
                     <CardHeader>
                         <CardTitle className="text-2xl text-green-600">
-                            Contact Information & Images
+                            Product Images
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-6">
-                            <div className="grid md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <Label htmlFor="contactPhone">
-                                        Contact Phone *
-                                    </Label>
-                                    <Input
-                                        id="contactPhone"
-                                        value={formData.contactPhone}
-                                        onChange={(e) =>
-                                            handleInputChange(
-                                                "contactPhone",
-                                                e.target.value
-                                            )
-                                        }
-                                        placeholder="+254 700 123 456"
-                                        required
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="contactEmail">
-                                        Contact Email
-                                    </Label>
-                                    <Input
-                                        id="contactEmail"
-                                        type="email"
-                                        value={formData.contactEmail}
-                                        onChange={(e) =>
-                                            handleInputChange(
-                                                "contactEmail",
-                                                e.target.value
-                                            )
-                                        }
-                                        placeholder="your@email.com"
-                                    />
-                                </div>
-                            </div>
-
                             <div className="space-y-2">
                                 <Label>Product Images *</Label>
                                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
@@ -1053,7 +1020,7 @@ export default function ListProductForm() {
                                         onChange={(e) =>
                                             handleInputChange(
                                                 "images",
-                                                Array.from(e.target.files)
+                                                Array.from(e.target.files),
                                             )
                                         }
                                         className="hidden"
@@ -1080,7 +1047,7 @@ export default function ListProductForm() {
                                                 <img
                                                     src={
                                                         URL.createObjectURL(
-                                                            img
+                                                            img,
                                                         ) || "/placeholder.svg"
                                                     }
                                                     alt="preview"
@@ -1093,7 +1060,7 @@ export default function ListProductForm() {
                                                             ...prev,
                                                             images: prev.images.filter(
                                                                 (_, index) =>
-                                                                    index !== i
+                                                                    index !== i,
                                                             ),
                                                         }))
                                                     }
@@ -1105,6 +1072,43 @@ export default function ListProductForm() {
                                         ))}
                                 </div>
                             </div>
+                            {/* <div className="grid md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <Label htmlFor="contactPhone">
+                                        Contact Phone *
+                                    </Label>
+                                    <Input
+                                        id="contactPhone"
+                                        value={formData.contactPhone}
+                                        onChange={(e) =>
+                                            handleInputChange(
+                                                "contactPhone",
+                                                e.target.value,
+                                            )
+                                        }
+                                        placeholder="+254 700 123 456"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="contactEmail">
+                                        Contact Email
+                                    </Label>
+                                    <Input
+                                        id="contactEmail"
+                                        type="email"
+                                        value={formData.contactEmail}
+                                        onChange={(e) =>
+                                            handleInputChange(
+                                                "contactEmail",
+                                                e.target.value,
+                                            )
+                                        }
+                                        placeholder="your@email.com"
+                                    />
+                                </div>
+                            </div> */}
 
                             <div className="flex gap-4 pt-6">
                                 <Button

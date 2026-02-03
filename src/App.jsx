@@ -15,39 +15,56 @@ import Cart from "./components/Cart.jsx";
 import SiteFooter from "./components/Footer.jsx";
 import { Toaster } from "react-hot-toast";
 import OrdersPage from "./components/Orders.jsx";
+import ProtectedRoutes from "./protected-routes/ProtectedRoutes.jsx";
+import Login from "./components/Login.jsx";
+import Profile from "./components/Profile.jsx";
+import { UserProvider } from "./providers/UserProvider.jsx";
 function App() {
     return (
         <AuthProvider>
             {/* <Toaster position="bottom-right" reverseOrder={false} /> */}
             <Toaster position="top-center" reverseOrder={false} />
-            <ProductProvider>
-                <BrowserRouter>
-                    <div className="">
-                        <Routes>
-                            {/*<Route path="/sokoni" element={<Markets />} />*/}
-                            <Route path="/" element={<ProductsListingPage />} />
-                            <Route
-                                path="/products/:productId"
-                                element={<ProductPage />}
-                            />
-                            <Route path="/cart" element={<Cart />} />
-                            <Route path="/orders" element={<OrdersPage />} />
-                            <Route
-                                path="/list-product"
-                                element={<ProductListingForm />}
-                            />
-                            <Route
-                                path="/products/:token/review"
-                                element={<ProductReview />}
-                            />{" "}
-                            {/* <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/products" element={<ProductsPage />} />
-          <Route path="/products/:id" element={<ProductDetailPage />} /> */}
-                        </Routes>
-                        <SiteFooter />
-                    </div>
-                </BrowserRouter>
-            </ProductProvider>
+            <UserProvider>
+                <ProductProvider>
+                    <BrowserRouter>
+                        <div className="">
+                            <Routes>
+                                <Route
+                                    path="/"
+                                    element={<ProductsListingPage />}
+                                />
+                                <Route path="/login" element={<Login />} />
+                                <Route
+                                    path="/products/:productId"
+                                    element={<ProductPage />}
+                                />
+                                <Route path="/cart" element={<Cart />} />
+                                {/* <Route path="/orders" element={<OrdersPage />} /> */}
+                                <Route
+                                    path="/list-product"
+                                    element={<ProductListingForm />}
+                                />
+                                <Route
+                                    path="/products/:token/review"
+                                    element={<ProductReview />}
+                                />
+
+                                {/* Protected Routes */}
+                                <Route element={<ProtectedRoutes />}>
+                                    <Route
+                                        path="/orders"
+                                        element={<OrdersPage />}
+                                    />
+                                    <Route
+                                        path="/profile"
+                                        element={<Profile />}
+                                    />
+                                </Route>
+                            </Routes>
+                        </div>
+                    </BrowserRouter>
+                </ProductProvider>
+            </UserProvider>
         </AuthProvider>
     );
 }
