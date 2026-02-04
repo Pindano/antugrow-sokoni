@@ -161,11 +161,11 @@ export function Navigation({
                                     <DropdownMenuGroup>
                                         <DropdownMenuItem>
                                             <User className="mr-2 h-4 w-4" />
-                                            <span>Profile</span>
+                                            <Link to="/profile">Profile</Link>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem>
                                             <Package className="mr-2 h-4 w-4" />
-                                            <span>My Orders</span>
+                                            <Link to="/orders">My Orders</Link>
                                         </DropdownMenuItem>
                                         {/* <DropdownMenuItem>
                                             <Settings className="mr-2 h-4 w-4" />

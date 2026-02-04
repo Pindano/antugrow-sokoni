@@ -15,16 +15,11 @@ import {
     Gift,
 } from "lucide-react";
 import { Navigation } from "./Navigation";
+import { useUserContext } from "../providers/UserProvider";
 
 export default function Profile() {
     const [activeTab, setActiveTab] = useState("personal"); // State to handle tab switching
-
-    const user = {
-        name: "Alex Thompson",
-        role: "Premium Member",
-        email: "alex.t@antugrow.com",
-        avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150",
-    };
+    const { userProfile } = useUserContext();
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
@@ -35,7 +30,10 @@ export default function Profile() {
                 <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center gap-6">
                     <div className="relative group">
                         <img
-                            src={user.avatar}
+                            src={
+                                // user.avatar ||
+                                `https://ui-avatars.com/api/?name=${userProfile?.full_name}&background=10b981&color=fff`
+                            }
                             alt="Profile"
                             className="w-28 h-28 rounded-3xl object-cover ring-4 ring-emerald-50"
                         />
@@ -46,17 +44,25 @@ export default function Profile() {
 
                     <div className="text-center md:text-left flex-1">
                         <h1 className="text-3xl font-bold text-gray-900">
-                            {user.name}
+                            {userProfile?.full_name}
                         </h1>
                         <p className="text-emerald-600 font-semibold mb-2">
-                            {user.role}
+                            {userProfile?.created_at
+                                ? `Member since ${new Date(
+                                      userProfile.created_at,
+                                  ).toLocaleString("en-US", {
+                                      month: "long",
+                                      year: "numeric",
+                                  })}`
+                                : "New Member"}
                         </p>
+
                         <div className="flex flex-wrap justify-center md:justify-start gap-4 text-sm text-gray-500">
                             <span className="flex items-center gap-1">
-                                <Mail size={14} /> {user.email}
+                                <Mail size={14} /> {userProfile?.email}
                             </span>
                             <span className="flex items-center gap-1">
-                                <MapPin size={14} /> San Francisco, CA
+                                <Phone size={14} /> {userProfile?.phone}
                             </span>
                         </div>
                     </div>
@@ -100,21 +106,21 @@ export default function Profile() {
                             <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <InputGroup
                                     label="Full Name"
-                                    value="Alex Thompson"
+                                    value={userProfile?.full_name || ""}
                                 />
                                 <InputGroup
                                     label="Email Address"
-                                    value="alex.t@antugrow.com"
+                                    value={userProfile?.email || ""}
                                 />
                                 <InputGroup
                                     label="Phone Number"
-                                    value="+1 (555) 000-0000"
+                                    value={userProfile?.phone || ""}
                                 />
                                 <InputGroup
                                     label="Organization"
-                                    value="Antugrow Creative"
+                                    value="Antugrow"
                                 />
-                                <div className="md:col-span-2">
+                                {/* <div className="md:col-span-2">
                                     <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
                                         Bio
                                     </label>
@@ -123,7 +129,7 @@ export default function Profile() {
                                         rows="4"
                                         defaultValue="Passionate about scaling digital solutions..."
                                     ></textarea>
-                                </div>
+                                </div> */}
                             </div>
                             <div className="px-6 py-4 bg-gray-50 flex justify-end">
                                 <button className="text-emerald-600 font-bold text-sm hover:underline">
